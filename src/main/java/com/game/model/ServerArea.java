@@ -1,15 +1,33 @@
 package com.game.model;
 
+import java.util.List;
+
 /**
  * Created by jennifert on 5/18/2017.
  */
 public class ServerArea {
     private Integer id;
-    private Integer parentId;
     private String name;
     private String code;
     private String active;
-    private Integer mergeredId;
+    private ServerArea mergerServerArea;
+    List<ServerArea> childServerAreas;
+
+    public List<ServerArea> getChildServerAreas() {
+        return childServerAreas;
+    }
+
+    public void setChildServerAreas(List<ServerArea> childServerAreas) {
+        this.childServerAreas = childServerAreas;
+    }
+
+    public ServerArea getMergerServerArea() {
+        return mergerServerArea;
+    }
+
+    public void setMergerServerArea(ServerArea mergerServerArea) {
+        this.mergerServerArea = mergerServerArea;
+    }
 
     public Integer getId() {
         return id;
@@ -17,14 +35,6 @@ public class ServerArea {
 
     public void setId(Integer id) {
         this.id = id;
-    }
-
-    public Integer getParentId() {
-        return parentId;
-    }
-
-    public void setParentId(Integer parentId) {
-        this.parentId = parentId;
     }
 
     public String getName() {
@@ -51,11 +61,13 @@ public class ServerArea {
         this.active = active;
     }
 
-    public Integer getMergeredId() {
-        return mergeredId;
-    }
-
-    public void setMergeredId(Integer mergeredId) {
-        this.mergeredId = mergeredId;
+    @Override
+    public String toString() {
+        return "ServerArea{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", code='" + code + '\'' +
+                ", active='" + active + '\'' +
+                '}';
     }
 }

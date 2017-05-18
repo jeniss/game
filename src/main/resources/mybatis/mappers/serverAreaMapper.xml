@@ -1,4 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.money.mapper.IServerArea">
+    <resultMap id="rm_serverArea" type="com.game.model.ServerArea">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="code" property="code"/>
+        <result column="active" property="active"/>
+        <collection property="childServerAreas" ofType="ServerArea" columnPrefix="c_"/>
+    </resultMap>
+
+    <select id="getAll" resultMap="rm_serverArea">
+        SELECT sa.*, sac.id AS c_id, sac.name AS c_name, sac.code AS c_code
+        FROM server_area sa
+        LEFT JOIN server_area sac ON sa.id = sac.parent_id
+        WHERE sa.parent_id is NULL AND sa.active = 'Y' AND sac.active = 'Y'
+    </select>
 </mapper>
