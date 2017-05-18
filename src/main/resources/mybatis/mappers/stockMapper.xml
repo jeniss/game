@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.money.mapper.IStockMapper">
+    <resultMap id="rmStock" type="com.money.model.dto.Stock">
+        <result property="id" column="id"/>
+        <result property="code" column="code"/>
+        <result property="name" column="name"/>
+        <result property="active" column="active"/>
+        <result property="entryDatetime" column="entry_datetime"/>
+        <result property="updateDatetime" column="update_datetime"/>
+        <result property="note" column="note"/>
+    </resultMap>
+
+    <!-- 创建一只股票 -->
+    <insert id="insertStock" parameterType="com.money.model.dto.Stock">
+        INSERT INTO stock(user_id, code, name, active, entry_datetime, update_datetime)
+        VALUES (#{userId}, #{code}, #{name}, 'Y', #{entryDatetime}, #{updateDatetime})
+    </insert>
+
+    <!-- 创建一个记录 -->
+    <insert id="insertStockFlow" parameterType="com.money.model.dto.StockFlow">
+        insert into stock_flow (stock_id, type, price, amount, total_price, entry_datetime, note)
+        values (#{stockId}, #{type}, #{price}, #{amount}, #{totalPrice}, #{entryDatetime}, #{note});
+    </insert>
+
+    <select id="getStockListView" resultMap="rmStock">
+        SELECT id, code, name, active, entry_datetime, update_datetime, note
+        FROM stock
+        ORDER BY active DESC
+    </select>
+</mapper>
