@@ -7,6 +7,6 @@ import java.util.List;
 /**
  * Created by jennifert on 5/18/2017.
  */
-public interface ServerAreaService {
+public interface IServerAreaService {
     List<ServerArea> getAll();
 }

@@ -1,7 +1,7 @@
 package com.game.service.impl;
 
 import com.game.model.ServerArea;
-import com.game.service.ServerAreaService;
+import com.game.service.IServerAreaService;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,11 +18,11 @@ import java.util.List;
 @ContextConfiguration(locations = "classpath:applicationContext.xml")
 public class ServerAreaServiceImplTest {
     @Autowired
-    private ServerAreaService serverAreaService;
+    private IServerAreaService IServerAreaService;
 
     @Test
     public void getAllTest() {
-        List<ServerArea> serverAreaList = serverAreaService.getAll();
+        List<ServerArea> serverAreaList = IServerAreaService.getAll();
         for (ServerArea serverArea : serverAreaList) {
             System.out.println(serverArea.toString());
             if (!CollectionUtils.isEmpty(serverArea.getChildServerAreas())) {
