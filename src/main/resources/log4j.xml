@@ -1,15 +1,16 @@
-<?xml version="1.0" encoding="GB2312" ?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
-<!--#log4j中有5级logger ,DEBUG，INFO，WARN，ERROR，FATAL -->
+<!--#log4j涓湁5绾ogger ,DEBUG锛孖NFO锛學ARN锛孍RROR锛孎ATAL -->
 <!--<log4j:configuration xmlns:log4j='http://jakarta.apache.org/log4j/'>  -->
 <log4j:configuration>
-    <!--log4j.xml常规配置开始-->
-    <!--输出到控制台-->
+    <!--log4j.xml甯歌閰嶇疆寮�濮�-->
+    <!--杈撳嚭鍒版帶鍒跺彴-->
     <appender name="LOG.Console" class="org.apache.log4j.ConsoleAppender">
+        <param name="Encoding" value="UTF-8"/>
         <layout class="org.apache.log4j.PatternLayout">
             <param name="ConversionPattern" value="[%d{MM-dd HH:mm:ss SSS\} %-5p] [%t] %c{3\} - %m%n"/>
         </layout>
-        <!-- 限制输出级别-->
+        <!-- 闄愬埗杈撳嚭绾у埆-->
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
             <param name="LevelMin" value="DEBUG"/>
             <param name="LevelMax" value="FATAL"/>
@@ -17,7 +18,7 @@
     </appender>
 
 
-    <!--将级别为DEBUG的信息输出到文件-->
+    <!--灏嗙骇鍒负DEBUG鐨勪俊鎭緭鍑哄埌鏂囦欢-->
     <appender name="LOG.DEBUG" class="org.apache.log4j.RollingFileAppender">
         <param name="File" value="${catalina.home}/logs/debug.log"/>
         <param name="MaxFileSize" value="5120KB"/>
@@ -31,7 +32,7 @@
         </filter>
     </appender>
 
-    <!--将级别为INFO的信息输出到文件-->
+    <!--灏嗙骇鍒负INFO鐨勪俊鎭緭鍑哄埌鏂囦欢-->
     <appender name="LOG.INFO" class="org.apache.log4j.RollingFileAppender">
         <param name="File" value="${catalina.home}/logs/info.log"/>
         <param name="MaxFileSize" value="5120KB"/>
@@ -45,7 +46,7 @@
         </filter>
     </appender>
 
-    <!--将级别为WARN的信息输出到文件-->
+    <!--灏嗙骇鍒负WARN鐨勪俊鎭緭鍑哄埌鏂囦欢-->
     <appender name="LOG.WARN" class="org.apache.log4j.RollingFileAppender">
         <param name="File" value="${catalina.home}/logs/warn.log"/>
         <param name="MaxFileSize" value="5120KB"/>
@@ -59,7 +60,7 @@
         </filter>
     </appender>
 
-    <!--将级别为ERROR的信息输出到文件-->
+    <!--灏嗙骇鍒负ERROR鐨勪俊鎭緭鍑哄埌鏂囦欢-->
     <appender name="LOG.ERROR" class="org.apache.log4j.RollingFileAppender">
         <param name="File" value="${catalina.home}/logs/error.log"/>
         <param name="MaxFileSize" value="5120KB"/>
@@ -73,7 +74,7 @@
         </filter>
     </appender>
 
-    <!--将级别为FATAL的信息输出到文件-->
+    <!--灏嗙骇鍒负FATAL鐨勪俊鎭緭鍑哄埌鏂囦欢-->
     <appender name="LOG.FATAL" class="org.apache.log4j.RollingFileAppender">
         <param name="File" value="${catalina.home}/logs/fatal.log"/>
         <param name="MaxFileSize" value="5120KB"/>

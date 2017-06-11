@@ -7,11 +7,20 @@ import java.util.List;
  */
 public class ServerArea {
     private Integer id;
+    private Integer gameId;
     private String name;
     private String code;
     private String active;
     private ServerArea mergerServerArea;
     List<ServerArea> childServerAreas;
+
+    public Integer getGameId() {
+        return gameId;
+    }
+
+    public void setGameId(Integer gameId) {
+        this.gameId = gameId;
+    }
 
     public List<ServerArea> getChildServerAreas() {
         return childServerAreas;
@@ -64,10 +73,10 @@ public class ServerArea {
     @Override
     public String toString() {
         return "ServerArea{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", code='" + code + '\'' +
-                ", active='" + active + '\'' +
-                '}';
+               "id=" + id +
+               ", name='" + name + '\'' +
+               ", code='" + code + '\'' +
+               ", active='" + active + '\'' +
+               '}';
     }
 }
