@@ -8,6 +8,13 @@ public class Game {
     private String name;
     private String code;
 
+    public Game() {
+    }
+
+    public Game(Integer id) {
+        this.id = id;
+    }
+
     public Integer getId() {
         return id;
     }

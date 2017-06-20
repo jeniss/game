@@ -3,7 +3,7 @@ package com.game.model;
 /**
  * Created by jeniss on 17/6/11.
  */
-public class Category {
+public class GameCategory {
     private Integer id;
     private Game game;
     private String name;

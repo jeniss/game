@@ -9,7 +9,7 @@ public class TradeFlow {
     private Integer id;
     private Game game;
     private ServerArea serverArea;
-    private Category category;
+    private GameCategory gameCategory;
     private String name;
     private Double price;
     private Integer stock;
@@ -42,12 +42,12 @@ public class TradeFlow {
         this.serverArea = serverArea;
     }
 
-    public Category getCategory() {
-        return category;
+    public GameCategory getGameCategory() {
+        return gameCategory;
     }
 
-    public void setCategory(Category category) {
-        this.category = category;
+    public void setGameCategory(GameCategory gameCategory) {
+        this.gameCategory = gameCategory;
     }
 
     public String getName() {

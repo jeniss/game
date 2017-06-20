@@ -20,7 +20,7 @@
 
     <!--将级别为DEBUG的信息输出到文件-->
     <appender name="LOG.DEBUG" class="org.apache.log4j.RollingFileAppender">
-        <param name="File" value="${catalina.home}/logs/debug.log"/>
+        <param name="File" value="${catalina.home}/logs/game/debug.log"/>
         <param name="MaxFileSize" value="5120KB"/>
         <param name="MaxBackupIndex" value="10"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -34,7 +34,7 @@
 
     <!--将级别为INFO的信息输出到文件-->
     <appender name="LOG.INFO" class="org.apache.log4j.RollingFileAppender">
-        <param name="File" value="${catalina.home}/logs/info.log"/>
+        <param name="File" value="${catalina.home}/logs/game/info.log"/>
         <param name="MaxFileSize" value="5120KB"/>
         <param name="MaxBackupIndex" value="10"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -48,7 +48,7 @@
 
     <!--将级别为WARN的信息输出到文件-->
     <appender name="LOG.WARN" class="org.apache.log4j.RollingFileAppender">
-        <param name="File" value="${catalina.home}/logs/warn.log"/>
+        <param name="File" value="${catalina.home}/logs/game/warn.log"/>
         <param name="MaxFileSize" value="5120KB"/>
         <param name="MaxBackupIndex" value="10"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -62,7 +62,7 @@
 
     <!--将级别为ERROR的信息输出到文件-->
     <appender name="LOG.ERROR" class="org.apache.log4j.RollingFileAppender">
-        <param name="File" value="${catalina.home}/logs/error.log"/>
+        <param name="File" value="${catalina.home}/logs/game/error.log"/>
         <param name="MaxFileSize" value="5120KB"/>
         <param name="MaxBackupIndex" value="10"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -76,7 +76,7 @@
 
     <!--将级别为FATAL的信息输出到文件-->
     <appender name="LOG.FATAL" class="org.apache.log4j.RollingFileAppender">
-        <param name="File" value="${catalina.home}/logs/fatal.log"/>
+        <param name="File" value="${catalina.home}/logs/game/fatal.log"/>
         <param name="MaxFileSize" value="5120KB"/>
         <param name="MaxBackupIndex" value="10"/>
         <layout class="org.apache.log4j.PatternLayout">
@@ -90,10 +90,10 @@
 
     <root>
         <priority value="DEBUG"/>
-        <appender-ref ref="LOG.Console"/>
-        <!--<appender-ref ref="LOG.INFO"/>-->
-        <!--<appender-ref ref="LOG.WARN"/>-->
-        <!--<appender-ref ref="LOG.ERROR"/>-->
-        <!--<appender-ref ref="LOG.FATAL"/>-->
+        <!--<appender-ref ref="LOG.Console"/>-->
+        <appender-ref ref="LOG.INFO"/>
+        <appender-ref ref="LOG.WARN"/>
+        <appender-ref ref="LOG.ERROR"/>
+        <appender-ref ref="LOG.FATAL"/>
     </root>
 </log4j:configuration>
