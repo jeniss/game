@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by jeniss on 17/5/23.
@@ -75,7 +76,7 @@ public class CronController {
                             String urlStr = stringBuilder.toString();
 
                             // get the first page info
-                            Document document = Jsoup.connect(urlStr).timeout(10000).get();
+                            Document document = Jsoup.connect(urlStr).get();
                             Elements contentElement = document.select("div[id=divCommodityLst] ul");
                             if (contentElement != null) {
                                 for (Element element : contentElement) {
@@ -127,6 +128,9 @@ public class CronController {
                                     tradeFlowList.add(tradeFlow);
                                 }
                             }
+                            Random random = new Random();
+                            int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
+                            Thread.sleep(sleepTime);
                         }
                     }
                 }
