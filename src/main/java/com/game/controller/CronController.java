@@ -19,6 +19,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -57,7 +58,6 @@ public class CronController {
 
             String urlPrefix = "http://www.uu898.com/newTrade.aspx?";
 
-            List<TradeFlow> tradeFlowList = new ArrayList<>();
 
             // Traversal the game
             for (Game game : gameList) {
@@ -67,6 +67,7 @@ public class CronController {
                     for (ServerArea serverArea : serverAreaList) {
                         // Traversal the childServer area of game
                         for (ServerArea childServer : serverArea.getChildServerAreas()) {
+                            List<TradeFlow> tradeFlowList = new ArrayList<>();
                             // process the url
                             StringBuilder stringBuilder = new StringBuilder(urlPrefix);
                             stringBuilder.append("gm=" + game.getCode());
@@ -127,17 +128,25 @@ public class CronController {
 
                                     tradeFlowList.add(tradeFlow);
                                 }
+
+                                if (!CollectionUtils.isEmpty(tradeFlowList)) {
+                                    tradeFlowService.postTradeFlowBatch(tradeFlowList);
+
+                                    String msg = "--------------------------- area:%s,server:%s,category:%s,size:%s ---------------------------";
+                                    logger.info(String.format(msg, serverArea.getId(), childServer.getId(), gameCategory.getId(), tradeFlowList.size()));
+                                    Random random = new Random();
+                                    int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
+                                    Thread.sleep(sleepTime);
+                                } else {
+                                    logger.info("--------------------------- size:0," + urlStr);
+                                }
+                            } else {
+                                logger.info("--------------------------- size:0," + urlStr);
                             }
-                            Random random = new Random();
-                            int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
-                            Thread.sleep(sleepTime);
                         }
                     }
                 }
             }
-
-            tradeFlowService.postTradeFlowBatch(tradeFlowList);
-
             return new JsonEntity();
         } catch (Exception e) {
             logger.error(Thread.currentThread().getStackTrace()[0].getMethodName(), e);
