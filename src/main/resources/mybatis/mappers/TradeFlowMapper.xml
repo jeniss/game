@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.game.mapper.ITradeFlowMapper">
+    <insert id="postTradeFlowBatch" parameterType="java.util.List">
+        INSERT INTO trade_flow
+        (game_id, server_area_id, category_id, name, price, stock, total_price, unit_price, trade_status, entry_datetime)
+        VALUES
+        <foreach collection="list" item="tradeFlow" separator=",">
+            (
+            #{tradeFlow.game.id}, #{tradeFlow.serverArea.id}, #{tradeFlow.gameCategory.id}, #{tradeFlow.name}, #{tradeFlow.price},
+            #{tradeFlow.stock}, #{tradeFlow.totalPrice}, #{tradeFlow.unitPrice}, #{tradeFlow.tradeStatus}, NOW()
+            )
+        </foreach>
+    </insert>
+</mapper>
