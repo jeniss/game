@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * Created by jeniss on 17/6/18.
  */
-@Service
+@Service(value = "tradeFlowService")
 public class TradeFlowServiceImpl implements ITradeFlowService {
     @Autowired
     ITradeFlowMapper tradeFlowMapper;
@@ -22,7 +22,7 @@ public class TradeFlowServiceImpl implements ITradeFlowService {
     @Override
     @Transactional
     public void postTradeFlowBatch(List<TradeFlow> tradeFlowList) {
-        if (CollectionUtils.isEmpty(tradeFlowList)){
+        if (CollectionUtils.isEmpty(tradeFlowList)) {
             throw new BizException("the trade flow list is null");
         }
         tradeFlowMapper.postTradeFlowBatch(tradeFlowList);

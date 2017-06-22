@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by jeniss on 17/6/18.
  */
-@Service
+@Service(value = "gameCategoryService")
 public class GameCategoryServiceImpl implements IGameCategoryService {
     @Autowired
     IGameCategoryMapper gameCategoryMapper;

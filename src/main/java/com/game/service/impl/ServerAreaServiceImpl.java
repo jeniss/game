@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by jennifert on 5/18/2017.
  */
-@Service
+@Service(value = "serverAreaService")
 public class ServerAreaServiceImpl implements IServerAreaService {
 
     @Resource

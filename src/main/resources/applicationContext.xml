@@ -40,6 +40,8 @@
         <property name="basePackage" value="com.game.mapper"/>
     </bean>
 
+    <bean name="SpringContextUtil" class="com.game.util.SpringContextUtil" scope="singleton"/>
+
     <!-- transaction configuration start -->
     <!-- 事务管理-->
     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
