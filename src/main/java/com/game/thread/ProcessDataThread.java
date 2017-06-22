@@ -63,7 +63,7 @@ public class ProcessDataThread extends Thread {
                             String urlStr = stringBuilder.toString();
 
                             // get the first page info
-                            Document document = Jsoup.connect(urlStr).get();
+                            Document document = Jsoup.connect(urlStr).timeout(10 * 1000).get();
                             Elements contentElement = document.select("div[id=divCommodityLst] ul");
                             if (contentElement != null) {
                                 for (Element element : contentElement) {

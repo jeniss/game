@@ -29,9 +29,11 @@ public class CronController {
     private ITradeFlowService tradeFlowService;
 
     @RequestMapping("/crawlingDataToSave.do")
-    public JsonEntity crawlingDataToSave() {
+    public JsonEntity<String> crawlingDataToSave() {
         ProcessDataThread thread = new ProcessDataThread();
         thread.start();
-        return new JsonEntity();
+        JsonEntity jsonEntity = new JsonEntity();
+        jsonEntity.setData("ok");
+        return jsonEntity;
     }
 }
