@@ -14,7 +14,8 @@ public class TradeFlow {
     private Double price;
     private Integer stock;
     private Double totalPrice;
-    private String unitPrice;
+    private Double unitPrice;
+    private String unitPriceDesc;
     private String tradeStatus;
     private Date entryDatetime;
 
@@ -82,12 +83,20 @@ public class TradeFlow {
         this.totalPrice = totalPrice;
     }
 
-    public String getUnitPrice() {
+    public Double getUnitPrice() {
         return unitPrice;
     }
 
-    public void setUnitPrice(String unitPrice) {
+    public void setUnitPrice(Double unitPrice) {
         this.unitPrice = unitPrice;
+    }
+
+    public String getUnitPriceDesc() {
+        return unitPriceDesc;
+    }
+
+    public void setUnitPriceDesc(String unitPriceDesc) {
+        this.unitPriceDesc = unitPriceDesc;
     }
 
     public String getTradeStatus() {

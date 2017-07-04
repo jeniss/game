@@ -18,6 +18,6 @@
         SELECT sa.*, sac.id AS c_id, sac.name AS c_name, sac.code AS c_code, sac.active AS c_active
         FROM server_area sa
         LEFT JOIN server_area sac ON sa.id = sac.parent_id
-        WHERE sa.parent_id is NULL AND sa.active = 'Y' AND sac.active = 'Y'
+        WHERE sa.parent_id is NULL AND sa.merger_id is NULL AND sac.merger_id is NULL AND sa.active = 'Y' AND sac.active = 'Y'
     </select>
 </mapper>

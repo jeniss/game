@@ -93,7 +93,7 @@ public class ProcessDataThread extends Thread {
 
                                     // unitPrice
                                     String unitPrice = element.select("li[class=sp_li1] h6 span").first().text();
-                                    tradeFlow.setUnitPrice(unitPrice);
+                                    tradeFlow.setUnitPriceDesc(unitPrice);
 
                                     // tradeStatus
                                     String tradeStatus = element.select("li[class=sp_li1] a").text();
