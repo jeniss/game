@@ -1,15 +1,15 @@
 package com.game.controller;
 
+import com.game.annotation.IpCheck;
 import com.game.entity.JsonEntity;
-import com.game.service.IGameCategoryService;
-import com.game.service.IGameService;
-import com.game.service.IServerAreaService;
-import com.game.service.ITradeFlowService;
 import com.game.thread.ProcessDataThread;
 import org.apache.log4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Date;
 
 /**
  * Created by jeniss on 17/5/23.
@@ -19,21 +19,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class CronController {
     private static final Logger logger = Logger.getLogger(CronController.class);
 
-    @Autowired
-    private IServerAreaService serverAreaService;
-    @Autowired
-    private IGameService gameService;
-    @Autowired
-    private IGameCategoryService gameCategoryService;
-    @Autowired
-    private ITradeFlowService tradeFlowService;
-
-    @RequestMapping("/crawlingDataToSave.do")
+    @RequestMapping(value = "/crawlingDataToSave.do", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
+    @IpCheck
     public JsonEntity<String> crawlingDataToSave() {
         ProcessDataThread thread = new ProcessDataThread();
         thread.start();
         JsonEntity jsonEntity = new JsonEntity();
-        jsonEntity.setData("ok");
+        jsonEntity.setData("crawlingDataToSave time:" + new Date());
         return jsonEntity;
     }
 }
