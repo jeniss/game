@@ -1,5 +1,6 @@
 package com.game.thread;
 
+import com.game.enums.GameCategoryType;
 import com.game.enums.TradeStatusType;
 import com.game.model.Game;
 import com.game.model.GameCategory;
@@ -70,43 +71,15 @@ public class ProcessDataThread extends Thread {
                                     logger.info("---------------------------");
                                     logger.info(element.html());
                                     logger.info("---------------------------");
-                                    TradeFlow tradeFlow = new TradeFlow();
-                                    // name
-                                    String name = element.select("li[class=sp_li0 pos] h2 a").text();
-                                    tradeFlow.setName(name);
 
-                                    // price
-                                    double price = Double.valueOf(element.select("li[class=Red zuan_dh] span").text());
-                                    tradeFlow.setPrice(price);
+                                    TradeFlow tradeFlow = null;
 
-                                    // stock
-                                    String stock = element.select("li[class=sp_li3] h5").text();
-                                    if (StringUtil.isNumeric(stock)) {
-                                        tradeFlow.setStock(Integer.valueOf(stock));
-                                    } else {
-                                        tradeFlow.setStock(0);
+                                    // parse html
+                                    if (GameCategoryType.gameCoin.getTypeName().equals(gameCategory.getName())) {
+                                        tradeFlow = this.parseHtmlOfGameCoin(element);
+                                    } else if (GameCategoryType.equipment.getTypeName().equals(gameCategory.getName())) {
+
                                     }
-
-                                    // totalPrice
-                                    Double totalPrice = tradeFlow.getPrice() * tradeFlow.getStock();
-                                    tradeFlow.setTotalPrice(totalPrice);
-
-                                    // unitPrice
-                                    String unitPrice = element.select("li[class=sp_li1] h6 span").first().text();
-                                    tradeFlow.setUnitPriceDesc(unitPrice);
-
-                                    // tradeStatus
-                                    String tradeStatus = element.select("li[class=sp_li1] a").text();
-                                    // trading
-                                    if (StringUtils.isEmpty(tradeStatus)) {
-                                        tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
-                                    }
-                                    // finished
-                                    if (StringUtils.isEmpty(tradeStatus)) {
-                                        tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
-                                    }
-                                    logger.info(tradeStatus);
-                                    tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
 
                                     tradeFlow.setGame(game);
                                     tradeFlow.setServerArea(childServer);
@@ -136,5 +109,89 @@ public class ProcessDataThread extends Thread {
         } catch (Exception e) {
             logger.error(Thread.currentThread().getStackTrace()[0].getMethodName(), e);
         }
+    }
+
+    /**
+     * parse html of GameCoin
+     * @param element
+     */
+    private TradeFlow parseHtmlOfGameCoin(Element element) {
+        TradeFlow tradeFlow = new TradeFlow();
+        // name
+        String name = element.select("li[class=sp_li0 pos] h2 a").text();
+        tradeFlow.setName(name);
+
+        // price
+        double price = Double.valueOf(element.select("li[class=Red zuan_dh] span").text());
+        tradeFlow.setPrice(price);
+
+        // stock
+        String stock = element.select("li[class=sp_li3] h5").text();
+        if (StringUtil.isNumeric(stock)) {
+            tradeFlow.setStock(Integer.valueOf(stock));
+        } else {
+            tradeFlow.setStock(0);
+        }
+
+        // totalPrice
+        Double totalPrice = tradeFlow.getPrice() * tradeFlow.getStock();
+        tradeFlow.setTotalPrice(totalPrice);
+
+        // unitPrice
+        String unitPrice = element.select("li[class=sp_li1] h6 span").first().text();
+        tradeFlow.setUnitPriceDesc(unitPrice);
+
+        // tradeStatus:finished,trading,selling
+        String tradeStatus = element.select("li[class=sp_li1] a").text();
+        // trading
+        if (StringUtils.isEmpty(tradeStatus)) {
+            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
+        }
+        // finished
+        if (StringUtils.isEmpty(tradeStatus)) {
+            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
+        }
+        tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
+        return tradeFlow;
+    }
+
+    /**
+     * parse html of equipment
+     * @param element
+     */
+    private TradeFlow parseHtmlOfEquipment(Element element) {
+        TradeFlow tradeFlow = new TradeFlow();
+        // name
+        String name = element.select("li[class=sp_li0 pos] h2 a").text();
+        tradeFlow.setName(name);
+
+        // price
+        double price = Double.valueOf(element.select("li[class=Red zuan_dh] span").text());
+        tradeFlow.setPrice(price);
+
+        // stock
+        String stock = element.select("li[class=sp_li3] h5").text();
+        if (StringUtil.isNumeric(stock)) {
+            tradeFlow.setStock(Integer.valueOf(stock));
+        } else {
+            tradeFlow.setStock(0);
+        }
+
+        // unitPrice: calculate with the title and price
+
+
+        // tradeStatus:finished,trading,selling
+        // selling
+        String tradeStatus = element.select("li[class=sp_li1] a").text();
+        // trading
+        if (StringUtils.isEmpty(tradeStatus)) {
+            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
+        }
+        // finished
+        if (StringUtils.isEmpty(tradeStatus)) {
+            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
+        }
+        tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
+        return tradeFlow;
     }
 }
