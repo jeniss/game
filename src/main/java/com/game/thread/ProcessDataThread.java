@@ -10,6 +10,7 @@ import com.game.service.IGameCategoryService;
 import com.game.service.IGameService;
 import com.game.service.IServerAreaService;
 import com.game.service.ITradeFlowService;
+import com.game.util.NumberRegExUtil;
 import com.game.util.SpringContextUtil;
 import com.game.util.StringUtils;
 import org.apache.log4j.Logger;
@@ -193,6 +194,10 @@ public class ProcessDataThread extends Thread {
         }
 
         // TODO unitPrice: calculate with the title and price
+        Integer count = this.processCount(name);
+        if (count != 0) {
+            tradeFlow.setUnitPrice();
+        }
 
 
         // tradeStatus:finished,trading,selling
@@ -208,5 +213,20 @@ public class ProcessDataThread extends Thread {
         }
         tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
         return tradeFlow;
+    }
+
+    private Integer processCount(String content) {
+        Integer result = 0;
+
+        List<Integer> numberByRomanNum = NumberRegExUtil.getNumberByRomanNum(content);
+        List<Integer> numberByZhNum = NumberRegExUtil.getNumberByZhNum(content);
+
+        if (numberByRomanNum.size() == 1 && numberByZhNum.size() == 0) {
+            result = numberByRomanNum.get(0);
+        } else if (numberByRomanNum.size() == 0 && numberByZhNum.size() == 1) {
+            result = numberByZhNum.get(0);
+        }
+
+        return result;
     }
 }
