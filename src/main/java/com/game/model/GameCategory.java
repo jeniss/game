@@ -8,6 +8,7 @@ public class GameCategory {
     private Game game;
     private String name;
     private String code;
+    private String value;
 
     public Integer getId() {
         return id;
@@ -39,5 +40,13 @@ public class GameCategory {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getValue() {
+        return value;
+    }
+
+    public void setValue(String value) {
+        this.value = value;
     }
 }

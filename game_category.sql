@@ -1,24 +1,22 @@
 /*
- Navicat Premium Data Transfer
+Navicat MySQL Data Transfer
 
- Source Server         : my
- Source Server Type    : MySQL
- Source Server Version : 50710
- Source Host           : localhost
- Source Database       : game
+Source Server         : test
+Source Server Version : 50627
+Source Host           : localhost:3306
+Source Database       : game
 
- Target Server Type    : MySQL
- Target Server Version : 50710
- File Encoding         : utf-8
+Target Server Type    : MYSQL
+Target Server Version : 50627
+File Encoding         : 65001
 
- Date: 07/06/2017 23:57:36 PM
+Date: 2017-07-07 15:03:42
 */
 
-SET NAMES utf8;
-SET FOREIGN_KEY_CHECKS = 0;
+SET FOREIGN_KEY_CHECKS=0;
 
 -- ----------------------------
---  Table structure for `game_category`
+-- Table structure for game_category
 -- ----------------------------
 DROP TABLE IF EXISTS `game_category`;
 CREATE TABLE `game_category` (
@@ -28,14 +26,22 @@ CREATE TABLE `game_category` (
   `game_id` int(11) DEFAULT NULL,
   `name` varchar(32) DEFAULT NULL,
   `code` varchar(32) DEFAULT NULL,
+  `value` varchar(32) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=13 DEFAULT CHARSET=utf8 ROW_FORMAT=COMPACT;
 
 -- ----------------------------
---  Records of `game_category`
+-- Records of game_category
 -- ----------------------------
-BEGIN;
-INSERT INTO `game_category` VALUES ('1', null, 'item', '1', '游戏币', '-3'), ('2', null, 'item', '1', '装备', '-2'), ('3', '2', 'key', '1', '艳阳宝玉', '1000'), ('4', '2', 'key', '1', '碧涛仙玉', '1'), ('5', '2', 'key', '1', '天龙魔血', '100'), ('6', '2', 'key', '1', '聚宝盆', '1000'), ('7', '2', 'key', '1', '飞天神符', '1000'), ('8', '2', 'key', '1', '仙豆', '1000'), ('9', '2', 'key', '1', '十铁碎片礼包', '1'), ('10', '2', 'key', '1', '金精铁玉+10级', '1'), ('11', '2', 'key', '1', '沐雨令', '1'), ('12', '2', 'key', '1', '抽抽', '100');
-COMMIT;
-
-SET FOREIGN_KEY_CHECKS = 1;
+INSERT INTO `game_category` VALUES ('1', null, 'item', '1', '游戏币', 'gameCoin', '-3');
+INSERT INTO `game_category` VALUES ('2', null, 'item', '1', '装备', 'equipment', '-2');
+INSERT INTO `game_category` VALUES ('3', '2', 'key', '1', '艳阳宝玉', null, '1000');
+INSERT INTO `game_category` VALUES ('4', '2', 'key', '1', '碧涛仙玉', null, '1');
+INSERT INTO `game_category` VALUES ('5', '2', 'key', '1', '天龙魔血', null, '100');
+INSERT INTO `game_category` VALUES ('6', '2', 'key', '1', '聚宝盆', null, '1000');
+INSERT INTO `game_category` VALUES ('7', '2', 'key', '1', '飞天神符', null, '1000');
+INSERT INTO `game_category` VALUES ('8', '2', 'key', '1', '仙豆', null, '1000');
+INSERT INTO `game_category` VALUES ('9', '2', 'key', '1', '十铁碎片礼包', null, '1');
+INSERT INTO `game_category` VALUES ('10', '2', 'key', '1', '金精铁玉+10级', null, '1');
+INSERT INTO `game_category` VALUES ('11', '2', 'key', '1', '沐雨令', null, '1');
+INSERT INTO `game_category` VALUES ('12', '2', 'key', '1', '抽抽', null, '100');

@@ -41,22 +41,29 @@ public class ProcessDataThread extends Thread {
             List<ServerArea> serverAreaList = serverAreaService.getAll();
 
             List<Game> gameList = gameService.getAllGameList();
-            List<GameCategory> gameCategoryList = gameCategoryService.getAllGameCategory();
+            List<GameCategory> gameCategoryList = gameCategoryService.getAllItemCategories();
 
             // Traversal the game
             for (Game game : gameList) {
-                // Traversal the gameCategory
-                for (GameCategory gameCategory : gameCategoryList) {
-                    // Traversal the serverArea of game
-                    for (ServerArea serverArea : serverAreaList) {
-                        // Traversal the childServer area of game
-                        for (ServerArea childServer : serverArea.getChildServerAreas()) {
-                            try {
-                                this.processData(game, gameCategory, serverArea, childServer);
-                            } catch (Exception e) {
-                                String msg = "area:%s,server:%s,category:%s";
-                                logger.error(Thread.currentThread().getStackTrace()[0].getMethodName() + ", " + String.format(msg, serverArea.getId(), childServer.getId(), gameCategory.getId()), e);
+                // Traversal the serverArea of game
+                for (ServerArea serverArea : serverAreaList) {
+                    // Traversal the childServer area of game
+                    for (ServerArea childServer : serverArea.getChildServerAreas()) {
+                        // Traversal the itemCategory
+                        for (GameCategory itemCategory : gameCategoryList) {
+                            // process the url
+                            String urlStr = this.getUrl(game, itemCategory, serverArea, childServer);
+
+                            // if the category type is equipment, then traversal the keys
+                            if (GameCategoryType.equipment.name().equals(itemCategory.getCode())) {
+                                List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
+                                for (GameCategory key : keyCategoryList) {
+                                    // TODO: 7/7/2017  processHtmlAndPost with key
+                                }
+                            } else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
+                                this.processHtmlAndPost(game, serverArea, childServer, itemCategory, urlStr);
                             }
+
                         }
                     }
                 }
@@ -67,64 +74,77 @@ public class ProcessDataThread extends Thread {
     }
 
     /**
-     * process the data of html, save it to DB
+     * process html and post the trade flow
      * @param game
-     * @param gameCategory
      * @param serverArea
      * @param childServer
+     * @param gameCategory: itemCategory / gameCategory
+     * @param urlStr
      */
-    private void processData(Game game, GameCategory gameCategory, ServerArea serverArea, ServerArea childServer) throws Exception {
-        String urlPrefix = "http://www.uu898.com/newTrade.aspx?";
-        ITradeFlowService tradeFlowService = (ITradeFlowService) SpringContextUtil.getBean("tradeFlowService");
+    private void processHtmlAndPost(Game game, ServerArea serverArea, ServerArea childServer, GameCategory gameCategory, String urlStr) {
+        try {
+            // get the page info
+            Document document = Jsoup.connect(urlStr).timeout(10 * 1000).get();
+            Elements contentElement = document.select("div[id=divCommodityLst] ul");
+            if (contentElement != null) {
+                List<TradeFlow> tradeFlowList = new ArrayList<>();
+                for (Element element : contentElement) {
+                    logger.info("--------------------------- html content start ---------------------------");
+                    logger.info(element.html());
+                    logger.info("--------------------------- html content end ---------------------------");
 
-        List<TradeFlow> tradeFlowList = new ArrayList<>();
-        // process the url
-        StringBuilder stringBuilder = new StringBuilder(urlPrefix);
-        stringBuilder.append("gm=" + game.getCode());
-        stringBuilder.append("&c=" + gameCategory.getCode());
-        stringBuilder.append("&area=" + serverArea.getCode());
-        stringBuilder.append("&srv=" + childServer.getCode());
-        String urlStr = stringBuilder.toString();
+                    TradeFlow tradeFlow = null;
 
-        // get the first page info
-        Document document = Jsoup.connect(urlStr).timeout(10 * 1000).get();
-        Elements contentElement = document.select("div[id=divCommodityLst] ul");
-        if (contentElement != null) {
-            for (Element element : contentElement) {
-                logger.info("--------------------------- html content start ---------------------------");
-                logger.info(element.html());
-                logger.info("--------------------------- html content end ---------------------------");
+                    // parse html
+                    if (GameCategoryType.gameCoin.getTypeName().equals(gameCategory.getName())) {
+                        tradeFlow = this.parseHtmlOfGameCoin(element);
+                    } else if (GameCategoryType.equipment.equals(gameCategory.getName())) {
+                        tradeFlow = this.parseHtmlOfEquipment(element, gameCategory);
+                    }
 
-                TradeFlow tradeFlow = null;
+                    tradeFlow.setGame(game);
+                    tradeFlow.setServerArea(childServer);
+                    tradeFlow.setGameCategory(gameCategory);
 
-                // parse html
-                if (GameCategoryType.gameCoin.getTypeName().equals(gameCategory.getName())) {
-                    tradeFlow = this.parseHtmlOfGameCoin(element);
-                } else if (GameCategoryType.equipment.equals(gameCategory.getName())) {
-                    tradeFlow = this.parseHtmlOfEquipment(element);
+                    tradeFlowList.add(tradeFlow);
                 }
 
-                tradeFlow.setGame(game);
-                tradeFlow.setServerArea(childServer);
-                tradeFlow.setGameCategory(gameCategory);
+                if (!CollectionUtils.isEmpty(tradeFlowList)) {
+                    ITradeFlowService tradeFlowService = (ITradeFlowService) SpringContextUtil.getBean("tradeFlowService");
+                    tradeFlowService.postTradeFlowBatch(tradeFlowList);
 
-                tradeFlowList.add(tradeFlow);
-            }
-
-            if (!CollectionUtils.isEmpty(tradeFlowList)) {
-                tradeFlowService.postTradeFlowBatch(tradeFlowList);
-
-                String msg = "--------------------------- area:%s,server:%s,category:%s,size:%s ---------------------------";
-                logger.info(String.format(msg, serverArea.getId(), childServer.getId(), gameCategory.getId(), tradeFlowList.size()));
-                Random random = new Random();
-                int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
-                Thread.sleep(sleepTime);
+                    String msg = "--------------------------- area:%s,server:%s,category:%s,size:%s ---------------------------";
+                    logger.info(String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getGame(), tradeFlowList.size()));
+                    Random random = new Random();
+                    int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
+                    Thread.sleep(sleepTime);
+                } else {
+                    logger.info("--------------------------- content size:0," + urlStr);
+                }
             } else {
                 logger.info("--------------------------- content size:0," + urlStr);
             }
-        } else {
-            logger.info("--------------------------- content size:0," + urlStr);
+        } catch (Exception e) {
+            String msg = "area:%s,server:%s,category:%s";
+            logger.error(Thread.currentThread().getStackTrace()[0].getMethodName() + ", " +
+                    String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getGame()), e);
         }
+    }
+
+    /**
+     * get the url
+     * @return
+     */
+    private String getUrl(Game game, GameCategory gameCategory, ServerArea serverArea, ServerArea childServer) {
+        String urlPrefix = "http://www.uu898.com/newTrade.aspx?";
+
+        StringBuilder stringBuilder = new StringBuilder(urlPrefix);
+        stringBuilder.append("gm=" + game.getCode());
+        stringBuilder.append("&c=" + gameCategory.getValue());
+        stringBuilder.append("&area=" + serverArea.getCode());
+        stringBuilder.append("&srv=" + childServer.getCode());
+
+        return stringBuilder.toString();
     }
 
     /**
@@ -153,7 +173,7 @@ public class ProcessDataThread extends Thread {
         Double totalPrice = tradeFlow.getPrice() * tradeFlow.getStock();
         tradeFlow.setTotalPrice(totalPrice);
 
-        // unitPrice
+        // unitPriceDesc
         String unitPrice = element.select("li[class=sp_li1] h6 span").first().text();
         tradeFlow.setUnitPriceDesc(unitPrice);
 
@@ -175,7 +195,7 @@ public class ProcessDataThread extends Thread {
      * parse html of equipment
      * @param element
      */
-    private TradeFlow parseHtmlOfEquipment(Element element) {
+    private TradeFlow parseHtmlOfEquipment(Element element, GameCategory keyCategory) {
         TradeFlow tradeFlow = new TradeFlow();
         // name
         String name = element.select("li[class=sp_li0 pos] h2 a").text();
@@ -193,12 +213,14 @@ public class ProcessDataThread extends Thread {
             tradeFlow.setStock(0);
         }
 
-        // TODO unitPrice: calculate with the title and price
+        // unitPrice, unitPriceDesc
         Integer count = this.processCount(name);
         if (count != 0) {
-            tradeFlow.setUnitPrice();
+            Integer unitCount = Integer.valueOf(keyCategory.getValue());
+            double unitPrice = price / count;
+            tradeFlow.setUnitPrice(unitPrice);
+            tradeFlow.setUnitPriceDesc(String.format("unit count:%s, price:%s", unitCount, (price / count) * unitCount));
         }
-
 
         // tradeStatus:finished,trading,selling
         // selling
@@ -215,6 +237,11 @@ public class ProcessDataThread extends Thread {
         return tradeFlow;
     }
 
+    /**
+     * process the equipment count
+     * @param content
+     * @return
+     */
     private Integer processCount(String content) {
         Integer result = 0;
 
