@@ -80,10 +80,10 @@
 
     <root>
         <priority value="DEBUG"/>
-        <!--<appender-ref ref="LOG.Console"/>-->
-        <appender-ref ref="LOG.INFO"/>
-        <appender-ref ref="LOG.WARN"/>
-        <appender-ref ref="LOG.ERROR"/>
-        <appender-ref ref="LOG.FATAL"/>
+        <appender-ref ref="LOG.Console"/>
+        <!--<appender-ref ref="LOG.INFO"/>-->
+        <!--<appender-ref ref="LOG.WARN"/>-->
+        <!--<appender-ref ref="LOG.ERROR"/>-->
+        <!--<appender-ref ref="LOG.FATAL"/>-->
     </root>
 </log4j:configuration>
