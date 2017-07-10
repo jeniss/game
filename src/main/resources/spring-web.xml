@@ -12,6 +12,8 @@
     <!--扫描com这个包里的所有类，把里面配上相应注解的类全都放在容器中进行管理@Controller @Service等 -->
     <context:component-scan base-package="com.game.*"/>
 
+    <bean name="SpringContextUtil" class="com.game.util.SpringContextUtil" scope="singleton"/>
+
     <!-- fast json begin -->
     <mvc:annotation-driven>
         <mvc:message-converters register-defaults="true">

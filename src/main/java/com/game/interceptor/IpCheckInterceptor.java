@@ -19,12 +19,12 @@ public class IpCheckInterceptor implements HandlerInterceptor {
     @Autowired
     IConfigService configService;
 
-    private int count = 0;
-
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         Config config = configService.getConfigByCode("valid.ip");
-        count++;
+        if (config.getValue().contains(request.getRemoteAddr())) {
+            return true;
+        }
         return false;
     }
 

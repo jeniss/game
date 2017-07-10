@@ -52,21 +52,27 @@ public class ProcessDataThread extends Thread {
                         // Traversal the itemCategory
                         for (GameCategory itemCategory : gameCategoryList) {
                             // process the url
-                            String urlStr = this.getUrl(game, itemCategory, serverArea, childServer);
+                            StringBuilder urlStringBuilder = this.getUrl(game, itemCategory, serverArea, childServer);
 
                             // if the category type is equipment, then traversal the keys
                             if (GameCategoryType.equipment.name().equals(itemCategory.getCode())) {
                                 List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
-                                for (GameCategory key : keyCategoryList) {
-                                    // TODO: 7/7/2017  processHtmlAndPost with key
+                                for (GameCategory keyCategory : keyCategoryList) {
+                                    urlStringBuilder.append("&keyCategory=" + keyCategory.getName());
+                                    this.processHtmlAndPost(game, serverArea, childServer, keyCategory, urlStringBuilder.toString());
+                                    break;
                                 }
-                            } else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
-                                this.processHtmlAndPost(game, serverArea, childServer, itemCategory, urlStr);
+                                break;
                             }
-
+//                            else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
+//                                this.processHtmlAndPost(game, serverArea, childServer, itemCategory, urlStringBuilder.toString());
+//                            }
                         }
+                        break;
                     }
+                    break;
                 }
+                break;
             }
         } catch (Exception e) {
             logger.error(Thread.currentThread().getStackTrace()[0].getMethodName(), e);
@@ -96,9 +102,9 @@ public class ProcessDataThread extends Thread {
                     TradeFlow tradeFlow = null;
 
                     // parse html
-                    if (GameCategoryType.gameCoin.getTypeName().equals(gameCategory.getName())) {
+                    if (GameCategoryType.gameCoin.name().equals(gameCategory.getCode())) {
                         tradeFlow = this.parseHtmlOfGameCoin(element);
-                    } else if (GameCategoryType.equipment.equals(gameCategory.getName())) {
+                    } else if (GameCategoryType.equipment.name().equals(gameCategory.getCode())) {
                         tradeFlow = this.parseHtmlOfEquipment(element, gameCategory);
                     }
 
@@ -135,7 +141,7 @@ public class ProcessDataThread extends Thread {
      * get the url
      * @return
      */
-    private String getUrl(Game game, GameCategory gameCategory, ServerArea serverArea, ServerArea childServer) {
+    private StringBuilder getUrl(Game game, GameCategory gameCategory, ServerArea serverArea, ServerArea childServer) {
         String urlPrefix = "http://www.uu898.com/newTrade.aspx?";
 
         StringBuilder stringBuilder = new StringBuilder(urlPrefix);
@@ -144,7 +150,7 @@ public class ProcessDataThread extends Thread {
         stringBuilder.append("&area=" + serverArea.getCode());
         stringBuilder.append("&srv=" + childServer.getCode());
 
-        return stringBuilder.toString();
+        return stringBuilder;
     }
 
     /**

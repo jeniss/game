@@ -11,6 +11,6 @@
         SELECT gc.id, gc.game_id, gc.name, gc.code, gc.value
         FROM game_category gci
         LEFT JOIN game_category gc ON gci.id = gc.parent_id
-        WHERE gci.type = #{itemCode}
+        WHERE gci.code = #{itemCode}
     </select>
 </mapper>
