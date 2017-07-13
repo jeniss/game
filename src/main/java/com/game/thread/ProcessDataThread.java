@@ -58,7 +58,7 @@ public class ProcessDataThread extends Thread {
                             if (GameCategoryType.equipment.name().equals(itemCategory.getCode())) {
                                 List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
                                 for (GameCategory keyCategory : keyCategoryList) {
-                                    urlStringBuilder.append("&keyCategory=" + keyCategory.getName());
+                                    urlStringBuilder.append("&key=" + keyCategory.getName());
                                     this.processHtmlAndPost(game, serverArea, childServer, keyCategory, urlStringBuilder.toString());
                                     break;
                                 }
