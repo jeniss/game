@@ -168,7 +168,7 @@ public class ProcessDataThread extends Thread {
 
         // stock
         String stock = element.select("li[class=sp_li3] h5").text();
-        if (org.jsoup.helper.StringUtil.isNumeric(stock)) {
+        if (StringUtil.isNumeric(stock)) {
             tradeFlow.setStock(Integer.valueOf(stock));
         } else {
             tradeFlow.setStock(0);
@@ -212,7 +212,7 @@ public class ProcessDataThread extends Thread {
 
         // stock
         String stock = element.select("li[class=sp_li3] h5").text();
-        if (org.jsoup.helper.StringUtil.isNumeric(stock)) {
+        if (StringUtil.isNumeric(stock)) {
             tradeFlow.setStock(Integer.valueOf(stock));
         } else {
             tradeFlow.setStock(0);

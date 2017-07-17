@@ -10,4 +10,15 @@ public class StringUtil {
         }
         return false;
     }
+
+    public static boolean isNumeric(String str) {
+        if (!isEmpty(str)) {
+            for (char c : str.toCharArray()) {
+                if (!Character.isDigit(c)) {
+                    return false;
+                }
+            }
+        }
+        return false;
+    }
 }
