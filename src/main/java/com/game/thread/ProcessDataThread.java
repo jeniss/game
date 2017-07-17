@@ -12,10 +12,9 @@ import com.game.service.IServerAreaService;
 import com.game.service.ITradeFlowService;
 import com.game.util.NumberRegExUtil;
 import com.game.util.SpringContextUtil;
-import com.game.util.StringUtils;
+import com.game.util.StringUtil;
 import org.apache.log4j.Logger;
 import org.jsoup.Jsoup;
-import org.jsoup.helper.StringUtil;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
@@ -169,7 +168,7 @@ public class ProcessDataThread extends Thread {
 
         // stock
         String stock = element.select("li[class=sp_li3] h5").text();
-        if (StringUtil.isNumeric(stock)) {
+        if (org.jsoup.helper.StringUtil.isNumeric(stock)) {
             tradeFlow.setStock(Integer.valueOf(stock));
         } else {
             tradeFlow.setStock(0);
@@ -186,11 +185,11 @@ public class ProcessDataThread extends Thread {
         // tradeStatus:finished,trading,selling
         String tradeStatus = element.select("li[class=sp_li1] a").text();
         // trading
-        if (StringUtils.isEmpty(tradeStatus)) {
+        if (StringUtil.isEmpty(tradeStatus)) {
             tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
         }
         // finished
-        if (StringUtils.isEmpty(tradeStatus)) {
+        if (StringUtil.isEmpty(tradeStatus)) {
             tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
         }
         tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
@@ -213,7 +212,7 @@ public class ProcessDataThread extends Thread {
 
         // stock
         String stock = element.select("li[class=sp_li3] h5").text();
-        if (StringUtil.isNumeric(stock)) {
+        if (org.jsoup.helper.StringUtil.isNumeric(stock)) {
             tradeFlow.setStock(Integer.valueOf(stock));
         } else {
             tradeFlow.setStock(0);
@@ -232,11 +231,11 @@ public class ProcessDataThread extends Thread {
         // selling
         String tradeStatus = element.select("li[class=sp_li1] a").text();
         // trading
-        if (StringUtils.isEmpty(tradeStatus)) {
+        if (StringUtil.isEmpty(tradeStatus)) {
             tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
         }
         // finished
-        if (StringUtils.isEmpty(tradeStatus)) {
+        if (StringUtil.isEmpty(tradeStatus)) {
             tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
         }
         tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());

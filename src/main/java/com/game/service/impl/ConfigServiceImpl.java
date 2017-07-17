@@ -6,17 +6,18 @@ import com.game.service.IConfigService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * Created by jeniss on 17/5/23.
  */
-@Service
+@Service(value = "configService")
 public class ConfigServiceImpl implements IConfigService {
     @Resource
     private IConfigMapper configMapper;
 
     @Override
-    public Config getConfigByCode(String code) {
-        return configMapper.getConfigByCode(code);
+    public List<Config> getAllConfig() {
+        return configMapper.getAllConfig();
     }
 }

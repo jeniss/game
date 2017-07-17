@@ -1,4 +1,4 @@
-package com.game.service.impl;
+package com.game;
 
 import java.util.ArrayList;
 import java.util.HashMap;
