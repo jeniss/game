@@ -31,5 +31,44 @@
     <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
         <property name="basePackage" value="com.game.mapper"/>
     </bean>
+
+    <!-- activemq start -->
+    <bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://127.0.0.1:61616?wireFormat.maxInactivityDuration=0"></property>
+        <property name="trustedPackages">
+            <list>
+                <value>com.game</value>
+                <value>java.lang</value>
+                <value>java.util</value>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">
+        <property name="connectionFactory" ref="targetConnectionFactory"></property>
+        <property name="maxConnections" value="10"></property>
+    </bean>
+
+    <bean id="connection" class="org.springframework.jms.connection.SingleConnectionFactory">
+        <property name="targetConnectionFactory" ref="pooledConnectionFactory"></property>
+    </bean>
+
+    <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connection"></property>
+    </bean>
+
+    <bean id="objectMessageConvert" class="com.game.jms.convert.ObjectMessageConvert"/>
+
+    <!-- mail -->
+    <bean id="mailDestination" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="mailQueue"/>
+    </bean>
+    <bean id="mailListener" class="com.game.jms.listener.MailListener"/>
+    <bean id="mailListenerContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connection"/>
+        <property name="destination" ref="mailDestination"/>
+        <property name="messageListener" ref="mailListener"/>
+    </bean>
+    <!-- activemq end -->
 </beans>
 
