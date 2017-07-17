@@ -31,7 +31,7 @@ public class NumberRegExUtil {
      * @param content
      */
     public static List<Integer> getNumberByRomanNum(String content) {
-        String numberPattern = "\\d{1,3}个";
+        String numberPattern = "\\d{1,4}个";
 
         List<Integer> result = new ArrayList<>();
         Pattern pattern = Pattern.compile(numberPattern);

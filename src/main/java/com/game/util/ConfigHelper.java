@@ -49,7 +49,6 @@ public class ConfigHelper {
     private final static String VALID_IP = "valid.ip";
     private final static String MAIL_USERNAME = "mail.username";
     private final static String MAIL_PASSWORD = "mail.password";
-    private final static String MAIL_SENDER = "mail.sender";
 
     public String getValidIp() {
         return getValue(VALID_IP);
@@ -61,9 +60,5 @@ public class ConfigHelper {
 
     public String getMailPassword() {
         return getValue(MAIL_PASSWORD);
-    }
-
-    public String getMailSender() {
-        return getValue(MAIL_SENDER);
     }
 }
