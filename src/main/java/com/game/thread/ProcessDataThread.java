@@ -67,8 +67,8 @@ public class ProcessDataThread extends Thread {
                             List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
                             for (GameCategory keyCategory : keyCategoryList) {
                                 try {
-                                    urlStringBuilder.append("&key=" + URLEncoder.encode(keyCategory.getName(), "UTF-8"));
-                                    this.processHtmlAndPost(game, serverArea, childServer, keyCategory, urlStringBuilder.toString());
+                                    String url = urlStringBuilder.toString() + "&key=" + URLEncoder.encode(keyCategory.getName(), "UTF-8");
+                                    this.processHtmlAndPost(game, serverArea, childServer, keyCategory, url);
                                 } catch (UnsupportedEncodingException e) {
                                     logger.error(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
                                 }
@@ -230,7 +230,7 @@ public class ProcessDataThread extends Thread {
         }
 
         // get next page url
-        Elements pageElement = document.select("ul[id=ulTurnPage] img");
+        Elements pageElement = document.select("ul[id=ulTurnPage] img[alt=下一页]");
         if (pageElement.size() > 0) {
             // sleep
             Random random = new Random();
@@ -238,7 +238,8 @@ public class ProcessDataThread extends Thread {
             Thread.sleep(sleepTime);
 
             String nextUrl = pageElement.get(0).parent().attr("href");
-            tradeFlowList = this.getEquipmentTradeFlow(null, nextUrl, game, gameCategory, childServer);
+            nextUrl = nextUrl.replace(gameCategory.getName(), URLEncoder.encode(gameCategory.getName(), "UTF-8"));
+            tradeFlowList = this.getEquipmentTradeFlow(tradeFlowList, nextUrl, game, gameCategory, childServer);
         }
         return tradeFlowList;
     }
