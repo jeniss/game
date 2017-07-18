@@ -11,6 +11,8 @@ import com.game.service.IGameCategoryService;
 import com.game.service.IGameService;
 import com.game.service.IServerAreaService;
 import com.game.service.ITradeFlowService;
+import com.game.template.TemplateName;
+import com.game.template.TemplateService;
 import com.game.util.ConfigHelper;
 import com.game.util.NumberRegExUtil;
 import com.game.util.SpringContextUtil;
@@ -23,11 +25,13 @@ import org.jsoup.select.Elements;
 import org.springframework.jms.core.JmsTemplate;
 import org.springframework.util.CollectionUtils;
 
-import javax.print.attribute.standard.Destination;
-import java.io.IOException;
+import javax.jms.Destination;
+import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -62,7 +66,12 @@ public class ProcessDataThread extends Thread {
                         if (GameCategoryType.equipment.name().equals(itemCategory.getCode())) {
                             List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
                             for (GameCategory keyCategory : keyCategoryList) {
-                                this.processHtmlAndPost(game, serverArea, childServer, keyCategory, urlStringBuilder.toString());
+                                try {
+                                    urlStringBuilder.append("&key=" + URLEncoder.encode(keyCategory.getName(), "UTF-8"));
+                                    this.processHtmlAndPost(game, serverArea, childServer, keyCategory, urlStringBuilder.toString());
+                                } catch (UnsupportedEncodingException e) {
+                                    logger.error(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
+                                }
                             }
                         } else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
                             this.processHtmlAndPost(game, serverArea, childServer, itemCategory, urlStringBuilder.toString());
@@ -106,16 +115,28 @@ public class ProcessDataThread extends Thread {
         } catch (Exception e) {
             String msg = String.format("area:%s,server:%s,category:%s", serverArea.getName(), childServer.getName(), gameCategory.getName());
 
-            JmsTemplate jmsTemplate = (JmsTemplate) SpringContextUtil.getBean("jmsTemplate");
-            Destination destination = (Destination) SpringContextUtil.getBean("mailDestination");
-            MailBo mailBo = new MailBo();
-            mailBo.setFrom(ConfigHelper.getInstance().getMailUsername());
-            mailBo.setMailTo("jeniss1234@163.com");
-            mailBo.setSubject(msg);
-            mailBo.setMsgContent(Thread.currentThread().getStackTrace()[0].getMethodName() + ":" + e.getMessage());
-            jmsTemplate.convertAndSend(destination);
+            try {
+                Map<String, Object> templateParams = new HashMap<>();
+                templateParams.put("msg", msg);
+                templateParams.put("url", urlStr);
+                templateParams.put("exceptionMsg", e.toString());
+                templateParams.put("stacks", e.getStackTrace());
+                templateParams.put("htmlContent", e.getMessage());
+                TemplateService templateService = (TemplateService) SpringContextUtil.getBean("templateService");
+                String templateHtml = templateService.generate(TemplateName.MAIL_ERROR_MSG, templateParams);
+                JmsTemplate jmsTemplate = (JmsTemplate) SpringContextUtil.getBean("jmsTemplate");
+                Destination destination = (Destination) SpringContextUtil.getBean("mailDestination");
+                MailBo mailBo = new MailBo();
+                mailBo.setFrom(ConfigHelper.getInstance().getMailUsername());
+                mailBo.setMailTo("jenisstest@163.com");
+                mailBo.setSubject(msg);
+                mailBo.setMsgContent(templateHtml);
+                jmsTemplate.convertAndSend(destination, mailBo);
+            } catch (Exception e1) {
+                logger.error(e1);
+            }
 
-            logger.error(Thread.currentThread().getStackTrace()[0].getMethodName() + ", " + msg, e);
+            logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ", " + msg, e);
         }
     }
 
@@ -126,17 +147,13 @@ public class ProcessDataThread extends Thread {
      * @param gameCategory
      * @param childServer
      */
-    private List<TradeFlow> getGameCoinTradeFlow(String urlStr, Game game, GameCategory gameCategory, ServerArea childServer) throws IOException {
+    private List<TradeFlow> getGameCoinTradeFlow(String urlStr, Game game, GameCategory gameCategory, ServerArea childServer) throws Exception {
         logger.info("---------------------------url: " + urlStr);
         Document document = Jsoup.connect(urlStr).timeout(10 * 1000).get();
         Elements contentElement = document.select("div[id=divCommodityLst] ul");
         List<TradeFlow> tradeFlowList = new ArrayList<>();
         if (contentElement != null) {
             for (Element element : contentElement) {
-                logger.info("--------------------------- html content start ---------------------------");
-                logger.info(element.html());
-                logger.info("--------------------------- html content end ---------------------------");
-
                 TradeFlow tradeFlow = null;
 
                 // parse html
@@ -160,9 +177,8 @@ public class ProcessDataThread extends Thread {
      * @param gameCategory
      * @param childServer
      */
-    private List<TradeFlow> getEquipmentTradeFlow(List<TradeFlow> tradeFlowList, String urlStr, Game game, GameCategory gameCategory, ServerArea childServer) throws IOException, InterruptedException {
-        logger.info("---------------------------url: " + urlStr + "&key=" + gameCategory.getName());
-        urlStr = urlStr + "&key=" + URLEncoder.encode(gameCategory.getName(), "UTF-8");
+    private List<TradeFlow> getEquipmentTradeFlow(List<TradeFlow> tradeFlowList, String urlStr, Game game, GameCategory gameCategory, ServerArea childServer) throws Exception {
+        logger.info("---------------------------url: " + urlStr);
 
         Document document = Jsoup.connect(urlStr).timeout(10 * 1000).get();
 
@@ -172,10 +188,6 @@ public class ProcessDataThread extends Thread {
         }
         if (contentElement != null) {
             for (Element element : contentElement) {
-                //                logger.info("--------------------------- html content start ---------------------------");
-                //                logger.info(element.html());
-                //                logger.info("--------------------------- html content end ---------------------------");
-
                 TradeFlow tradeFlow = null;
 
                 // parse html
@@ -185,15 +197,17 @@ public class ProcessDataThread extends Thread {
                 tradeFlow.setServerArea(childServer);
                 tradeFlow.setGameCategory(gameCategory);
 
+                boolean isAdd = false;
+                boolean allNull = true;
                 int nullCount = 0;
                 if (tradeFlow.getUnitPrice() != null) {
                     int listSeq = 0;
-                    boolean allNull = true;
                     for (TradeFlow tradeFlowInList : tradeFlowList) {
                         if (tradeFlowInList.getUnitPrice() != null) {
                             allNull = false;
                             if (tradeFlow.getUnitPrice().doubleValue() < tradeFlowInList.getUnitPrice().doubleValue()) {
                                 tradeFlowList.add(listSeq, tradeFlow);
+                                isAdd = true;
                                 break;
                             }
                         } else {
@@ -209,8 +223,8 @@ public class ProcessDataThread extends Thread {
                     tradeFlowList.add(0, tradeFlow);
                 }
 
-                if (tradeFlowList.size() > 10) {
-                    tradeFlowList = tradeFlowList.subList(0, 10 + nullCount);
+                if (isAdd && (tradeFlowList.size() - nullCount) > 10) {
+                    tradeFlowList = tradeFlowList.subList(0, tradeFlowList.size() - 1);
                 }
             }
         }
@@ -223,7 +237,7 @@ public class ProcessDataThread extends Thread {
             int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
             Thread.sleep(sleepTime);
 
-            String nextUrl = pageElement.get(0).parent().attr("href");
+            String nextUrl = URLEncoder.encode(pageElement.get(0).parent().attr("href"), "UTF-8");
             tradeFlowList = this.getEquipmentTradeFlow(null, nextUrl, game, gameCategory, childServer);
         }
         return tradeFlowList;
@@ -248,89 +262,97 @@ public class ProcessDataThread extends Thread {
      * parse html of GameCoin
      * @param element
      */
-    private TradeFlow parseHtmlOfGameCoin(Element element) {
-        TradeFlow tradeFlow = new TradeFlow();
-        // name
-        String name = element.select("li[class=sp_li0 pos] h2 a").text();
-        tradeFlow.setName(name);
+    private TradeFlow parseHtmlOfGameCoin(Element element) throws Exception {
+        try {
+            TradeFlow tradeFlow = new TradeFlow();
+            // name
+            String name = element.select("li[class=sp_li0 pos] h2 a").text();
+            tradeFlow.setName(name);
 
-        // price
-        double price = Double.valueOf(element.select("li[class=Red zuan_dh] span").text());
-        tradeFlow.setPrice(price);
+            // price
+            double price = Double.valueOf(element.select("li[class=Red zuan_dh] span").text());
+            tradeFlow.setPrice(price);
 
-        // stock
-        String stock = element.select("li[class=sp_li3] h5").text();
-        if (StringUtil.isNumeric(stock)) {
-            tradeFlow.setStock(Integer.valueOf(stock));
-        } else {
-            tradeFlow.setStock(0);
+            // stock
+            String stock = element.select("li[class=sp_li3] h5").text();
+            if (StringUtil.isNumeric(stock)) {
+                tradeFlow.setStock(Integer.valueOf(stock));
+            } else {
+                tradeFlow.setStock(0);
+            }
+
+            // totalPrice
+            Double totalPrice = tradeFlow.getPrice() * tradeFlow.getStock();
+            tradeFlow.setTotalPrice(totalPrice);
+
+            // unitPriceDesc
+            String unitPrice = element.select("li[class=sp_li1] h6 span").first().text();
+            tradeFlow.setUnitPriceDesc(unitPrice);
+
+            // tradeStatus:finished,trading,selling
+            String tradeStatus = element.select("li[class=sp_li1] a").text();
+            // trading
+            if (StringUtil.isEmpty(tradeStatus)) {
+                tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
+            }
+            // finished
+            if (StringUtil.isEmpty(tradeStatus)) {
+                tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
+            }
+            tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
+            return tradeFlow;
+        } catch (Exception e) {
+            throw new Exception(element.html(), e);
         }
-
-        // totalPrice
-        Double totalPrice = tradeFlow.getPrice() * tradeFlow.getStock();
-        tradeFlow.setTotalPrice(totalPrice);
-
-        // unitPriceDesc
-        String unitPrice = element.select("li[class=sp_li1] h6 span").first().text();
-        tradeFlow.setUnitPriceDesc(unitPrice);
-
-        // tradeStatus:finished,trading,selling
-        String tradeStatus = element.select("li[class=sp_li1] a").text();
-        // trading
-        if (StringUtil.isEmpty(tradeStatus)) {
-            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
-        }
-        // finished
-        if (StringUtil.isEmpty(tradeStatus)) {
-            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
-        }
-        tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
-        return tradeFlow;
     }
 
     /**
      * parse html of equipment
      * @param element
      */
-    private TradeFlow parseHtmlOfEquipment(Element element, GameCategory keyCategory) {
-        TradeFlow tradeFlow = new TradeFlow();
-        // name
-        String name = element.select("li[class=sp_li0 pos] h2 a").text();
-        tradeFlow.setName(name);
+    private TradeFlow parseHtmlOfEquipment(Element element, GameCategory keyCategory) throws Exception {
+        try {
+            TradeFlow tradeFlow = new TradeFlow();
+            // name
+            String name = element.select("li[class=sp_li0 pos] h2 a").text();
+            tradeFlow.setName(name);
 
-        // price
-        double price = Double.valueOf(element.select("li[class=Red zuan_dh] span").text());
-        tradeFlow.setPrice(price);
+            // price
+            double price = Double.valueOf(element.select("li[class=Red zuan_dh] span").text());
+            tradeFlow.setPrice(price);
 
-        // stock
-        String stock = element.select("li[class=sp_li3] h5").text();
-        if (StringUtil.isNumeric(stock)) {
-            tradeFlow.setStock(Integer.valueOf(stock));
-        } else {
-            tradeFlow.setStock(0);
-        }
+            // stock
+            String stock = element.select("li[class=sp_li3] h5").text();
+            if (StringUtil.isNumeric(stock)) {
+                tradeFlow.setStock(Integer.valueOf(stock));
+            } else {
+                tradeFlow.setStock(0);
+            }
 
-        // unitPrice, unitPriceDesc
-        Integer count = this.processCount(name);
-        if (count != 0) {
-            Integer unitCount = Integer.valueOf(keyCategory.getValue());
-            tradeFlow.setUnitPrice((price / count) * unitCount);
-            tradeFlow.setUnitPriceDesc(String.format("unit count:%s", unitCount));
-        }
+            // unitPrice, unitPriceDesc
+            Integer count = this.processCount(name);
+            if (count != 0) {
+                Integer unitCount = Integer.valueOf(keyCategory.getValue());
+                tradeFlow.setUnitPrice((price / count) * unitCount);
+                tradeFlow.setUnitPriceDesc(String.format("unit count:%s", unitCount));
+            }
 
-        // tradeStatus:finished,trading,selling
-        // selling
-        String tradeStatus = element.select("li[class=sp_li1] a").text();
-        // trading
-        if (StringUtil.isEmpty(tradeStatus)) {
-            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
+            // tradeStatus:finished,trading,selling
+            // selling
+            String tradeStatus = element.select("li[class=sp_li1] a").text();
+            // trading
+            if (StringUtil.isEmpty(tradeStatus)) {
+                tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jyz]").text();
+            }
+            // finished
+            if (StringUtil.isEmpty(tradeStatus)) {
+                tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
+            }
+            tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
+            return tradeFlow;
+        } catch (Exception e) {
+            throw new Exception(element.html(), e);
         }
-        // finished
-        if (StringUtil.isEmpty(tradeStatus)) {
-            tradeStatus = element.select("li[class=sp_li1]>span[class=btn_jywc]").text();
-        }
-        tradeFlow.setTradeStatus(TradeStatusType.getTradeStatusTypeByDesc(tradeStatus).name());
-        return tradeFlow;
     }
 
     /**

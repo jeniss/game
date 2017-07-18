@@ -32,6 +32,21 @@
         <property name="basePackage" value="com.game.mapper"/>
     </bean>
 
+    <!-- freeMarker start -->
+    <bean id="freemarkerConfiguration" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+        <property name="templateLoaderPath" value="classpath:templates"/>
+        <property name="preferFileSystemAccess" value="false"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+        <property name="freemarkerSettings">
+            <props>
+                <prop key="template_update_delay">18000</prop>
+                <prop key="url_escaping_charset">UTF-8</prop>
+                <prop key="output_encoding">UTF-8</prop>
+            </props>
+        </property>
+    </bean>
+    <!-- freeMarker end -->
+
     <!-- activemq start -->
     <bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
         <property name="brokerURL" value="tcp://127.0.0.1:61616?wireFormat.maxInactivityDuration=0"></property>
@@ -45,16 +60,16 @@
     </bean>
 
     <bean id="pooledConnectionFactory" class="org.apache.activemq.pool.PooledConnectionFactory">
-        <property name="connectionFactory" ref="targetConnectionFactory"></property>
-        <property name="maxConnections" value="10"></property>
+        <property name="connectionFactory" ref="targetConnectionFactory"/>
+        <property name="maxConnections" value="10"/>
     </bean>
 
     <bean id="connection" class="org.springframework.jms.connection.SingleConnectionFactory">
-        <property name="targetConnectionFactory" ref="pooledConnectionFactory"></property>
+        <property name="targetConnectionFactory" ref="pooledConnectionFactory"/>
     </bean>
 
     <bean id="jmsTemplate" class="org.springframework.jms.core.JmsTemplate">
-        <property name="connectionFactory" ref="connection"></property>
+        <property name="connectionFactory" ref="connection"/>
     </bean>
 
     <bean id="objectMessageConvert" class="com.game.jms.convert.ObjectMessageConvert"/>
