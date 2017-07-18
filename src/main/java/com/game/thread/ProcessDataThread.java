@@ -237,7 +237,7 @@ public class ProcessDataThread extends Thread {
             int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
             Thread.sleep(sleepTime);
 
-            String nextUrl = URLEncoder.encode(pageElement.get(0).parent().attr("href"), "UTF-8");
+            String nextUrl = pageElement.get(0).parent().attr("href");
             tradeFlowList = this.getEquipmentTradeFlow(null, nextUrl, game, gameCategory, childServer);
         }
         return tradeFlowList;
