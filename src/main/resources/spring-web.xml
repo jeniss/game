@@ -70,6 +70,7 @@
     <mvc:interceptors>
         <mvc:interceptor>
             <mvc:mapping path="/cron/**"/>
+            <mvc:mapping path="/processData/**"/>
             <bean class="com.game.interceptor.IpCheckInterceptor"/>
         </mvc:interceptor>
     </mvc:interceptors>
