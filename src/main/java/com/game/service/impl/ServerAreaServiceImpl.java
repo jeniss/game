@@ -21,4 +21,9 @@ public class ServerAreaServiceImpl implements IServerAreaService {
     public List<ServerArea> getAll() {
         return serverAreaMapper.getAll();
     }
+
+    @Override
+    public ServerArea getServerAreaByParentIdAndCode(Integer parentId, String code) {
+        return serverAreaMapper.getServerAreaByParentIdAndCode(parentId, code);
+    }
 }

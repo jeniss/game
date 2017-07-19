@@ -30,15 +30,15 @@ public class NumberRegExUtil {
      * get roman number in content
      * @param content
      */
-    public static List<Integer> getNumberByRomanNum(String content) {
-        String numberPattern = "\\d{1,4}个";
+    public static List<Double> getNumberByRomanNum(String content) {
+        String numberPattern = "\\d{1,5}+(\\.\\d+)?个";
 
-        List<Integer> result = new ArrayList<>();
+        List<Double> result = new ArrayList<>();
         Pattern pattern = Pattern.compile(numberPattern);
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
             String matcherNumber = matcher.group();
-            result.add(Integer.valueOf(matcherNumber.replace("个", "")));
+            result.add(Double.valueOf(matcherNumber.replace("个", "")));
         }
         return result;
     }
@@ -47,8 +47,8 @@ public class NumberRegExUtil {
      * get roman number(1~99) from zh in content
      * @param content
      */
-    public static List<Integer> getNumberByZhNum(String content) {
-        List<Integer> result = new ArrayList<>();
+    public static List<Double> getNumberByZhNum(String content) {
+        List<Double> result = new ArrayList<>();
         //(一|二|三|四|五|六|七|八|九|十){1,3}个
         String regexZhNumber = "(\\u4e00|\\u4e8c|\\u4e09|\\u56db|\\u4e94|\\u516d|\\u4e03|\\u516b|\\u4e5d|\\u5341){1,3}个";
         Pattern pattern = Pattern.compile(regexZhNumber);
@@ -57,12 +57,12 @@ public class NumberRegExUtil {
             String matcherNumber = matcher.group();
             matcherNumber = matcherNumber.replace("个", "");
 
-            int[] charArray = new int[3];
+            double[] charArray = new double[3];
             for (int i = 0; i < matcherNumber.length(); i++) {
                 charArray[i] = numMap.get(String.valueOf(matcherNumber.charAt(i)));
             }
 
-            Integer number = charArray[0];
+            Double number = charArray[0];
             if (charArray.length == 2) {
                 number = charArray[0] * charArray[1];
             } else if (charArray.length == 3) {

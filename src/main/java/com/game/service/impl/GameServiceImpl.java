@@ -23,4 +23,14 @@ public class GameServiceImpl implements IGameService {
     public List<Game> getAllGameList() {
         return gameMapper.getAllGameList();
     }
+
+    /**
+     * get game by code
+     * @param code
+     * @return
+     */
+    @Override
+    public Game getGameByCode(String code) {
+        return gameMapper.getGameByCode(code);
+    }
 }

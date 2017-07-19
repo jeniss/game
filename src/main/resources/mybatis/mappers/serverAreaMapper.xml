@@ -20,4 +20,18 @@
         LEFT JOIN server_area sac ON sa.id = sac.parent_id
         WHERE sa.parent_id is NULL AND sa.merger_id is NULL AND sac.merger_id is NULL AND sa.active = 'Y' AND sac.active = 'Y'
     </select>
+
+    <select id="getServerAreaByParentIdAndCode" resultType="serverArea">
+        SELECT sa.* FROM server_area sa
+        WHERE sa.code=#{code}
+        <choose>
+            <when test="parentId == null">
+                AND sa.parent_id IS NULL
+            </when>
+            <otherwise>
+                AND sa.parent_id=#{parentId}
+            </otherwise>
+        </choose>
+    </select>
+
 </mapper>

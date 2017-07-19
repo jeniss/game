@@ -1,6 +1,7 @@
 package com.game.mapper;
 
 import com.game.model.Game;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -9,4 +10,6 @@ import java.util.List;
  */
 public interface IGameMapper {
     List<Game> getAllGameList();
+
+    Game getGameByCode(@Param("code") String code);
 }

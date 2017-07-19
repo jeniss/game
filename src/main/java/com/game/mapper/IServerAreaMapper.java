@@ -1,6 +1,7 @@
 package com.game.mapper;
 
 import com.game.model.ServerArea;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -9,4 +10,6 @@ import java.util.List;
  */
 public interface IServerAreaMapper {
     List<ServerArea> getAll();
+
+    ServerArea getServerAreaByParentIdAndCode(@Param("parenId") Integer parentId, @Param("code") String code);
 }

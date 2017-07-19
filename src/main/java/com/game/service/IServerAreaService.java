@@ -9,4 +9,6 @@ import java.util.List;
  */
 public interface IServerAreaService {
     List<ServerArea> getAll();
+
+    ServerArea getServerAreaByParentIdAndCode(Integer parentId, String code);
 }

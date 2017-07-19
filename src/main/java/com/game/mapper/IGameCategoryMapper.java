@@ -12,4 +12,6 @@ public interface IGameCategoryMapper {
     List<GameCategory> getAllItemCategories();
 
     List<GameCategory> getAllKeysByItemCode(@Param("itemCode") String itemCode);
+
+    GameCategory getItemCategoryByValue(@Param("value") String value);
 }

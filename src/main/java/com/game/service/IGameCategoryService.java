@@ -11,4 +11,6 @@ public interface IGameCategoryService {
     List<GameCategory> getAllItemCategories();
 
     List<GameCategory> getAllKeysByItemCode(String itemCode);
+
+    GameCategory getItemCategoryByValue(String value);
 }

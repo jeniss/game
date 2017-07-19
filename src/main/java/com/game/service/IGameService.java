@@ -9,4 +9,6 @@ import java.util.List;
  */
 public interface IGameService {
     List<Game> getAllGameList();
+
+    Game getGameByCode(String code);
 }

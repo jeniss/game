@@ -1,27 +1,24 @@
 package com.game.util;
 
+import com.game.BaseTest;
 import com.game.jms.bo.MailBo;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
-import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import javax.jms.Destination;
 
 /**
  * Created by jennifert on 7/17/2017.
  */
-@RunWith(SpringJUnit4ClassRunner.class)
-@ContextConfiguration({"classpath*:/applicationContext.xml", "classpath*:/spring-web.xml"})
-public class MailUtilTest {
+
+public class MailUtilTest extends BaseTest{
     @Autowired
     JmsTemplate jmsTemplate;
 
     @Test
     public void send() throws Exception {
-        MailUtil.send("jenisstest@163.com", "jeniss1234@163.com", "test", "testhahaha");
+        MailUtil.send("jenisstest@163.com", "jenisstest@163.com", "test", "testhahaha");
     }
 
     @Test

@@ -4,4 +4,8 @@
     <select id="getAllGameList" resultType="game">
         SELECT id, name, code FROM game
     </select>
+    <select id="getGameByCode" resultType="game">
+        SELECT id, name, code FROM game
+        WHERE code=#{code}
+    </select>
 </mapper>

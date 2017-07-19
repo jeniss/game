@@ -25,4 +25,9 @@ public class GameCategoryServiceImpl implements IGameCategoryService {
     public List<GameCategory> getAllKeysByItemCode(String itemCode) {
         return gameCategoryMapper.getAllKeysByItemCode(itemCode);
     }
+
+    @Override
+    public GameCategory getItemCategoryByValue(String value) {
+        return gameCategoryMapper.getItemCategoryByValue(value);
+    }
 }

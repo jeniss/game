@@ -38,7 +38,7 @@ public class MailUtil {
 
         try {
             // create the connection between application and mail server
-            Session msession = Session.getInstance(props, null);
+            Session msession = Session.getDefaultInstance(props, null);
             msession.setDebug(true);
             Message msg = new MimeMessage(msession);
 
