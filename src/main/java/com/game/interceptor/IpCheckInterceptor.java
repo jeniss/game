@@ -1,6 +1,7 @@
 package com.game.interceptor;
 
 import com.game.util.ConfigHelper;
+import org.apache.log4j.Logger;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -11,9 +12,12 @@ import javax.servlet.http.HttpServletResponse;
  * Created by jennifert on 7/7/2017.
  */
 public class IpCheckInterceptor implements HandlerInterceptor {
+    private static final Logger logger = Logger.getLogger(IpCheckInterceptor.class);
+
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String validIps = ConfigHelper.getInstance().getValidIp();
+        logger.info("ip:" + request.getRemoteAddr());
         if (validIps.contains(request.getRemoteAddr())) {
             return true;
         }

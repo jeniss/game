@@ -11,5 +11,5 @@ import java.util.List;
 public interface IServerAreaMapper {
     List<ServerArea> getAll();
 
-    ServerArea getServerAreaByParentIdAndCode(@Param("parenId") Integer parentId, @Param("code") String code);
+    ServerArea getServerAreaByParentIdAndCode(@Param("parentId") Integer parentId, @Param("code") String code);
 }

@@ -11,6 +11,7 @@ import com.game.service.IProcessHTMLService;
 import com.game.service.IServerAreaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
@@ -33,10 +34,10 @@ public class DataController {
     @Autowired
     private IServerAreaService serverAreaService;
 
-    @RequestMapping(value = "/tradeFlowByUrl")
+    @RequestMapping(value = "/tradeFlowByUrl.do", method = RequestMethod.POST)
     public JsonEntity addTradeFlowByUrl(String url) {
         // process url
-        String[] params = url.split("/?")[1].split("/&");
+        String[] params = url.split("\\?")[1].split("\\&");
         Map<String, String> paramMap = new HashMap<>();
         for (String paramKeyValue : params) {
             paramMap.put(paramKeyValue.split("=")[0], paramKeyValue.split("=")[1]);
