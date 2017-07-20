@@ -337,6 +337,10 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
             result = numberByRomanNum.get(0);
         } else if (numberByRomanNum.size() == 0 && numberByZhNum.size() == 1) {
             result = numberByZhNum.get(0);
+        } else if (numberByRomanNum.size() == 1 && numberByZhNum.size() == 1) {
+            if (numberByRomanNum.get(0).doubleValue() == numberByZhNum.get(0).doubleValue()) {
+                result = numberByRomanNum.get(0);
+            }
         }
 
         // get result without unit by roman number
