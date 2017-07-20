@@ -30,16 +30,29 @@ public class NumberRegExUtil {
      * get roman number in content
      * @param content
      */
-    public static List<Double> getNumberByRomanNum(String content) {
-        String numberPattern = "\\d{1,5}+(\\.\\d+)?个";
+    public static List<Double> getNumberByRomanNum(String content, String unit, String withoutUnit) {
+        String numberPattern = "\\d{1,5}+(\\.\\d+)?";
+        if (unit != null) {
+            numberPattern += unit;
+        } else if (withoutUnit != null) {
+            numberPattern += withoutUnit;
+        }
 
         List<Double> result = new ArrayList<>();
         Pattern pattern = Pattern.compile(numberPattern);
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
             String matcherNumber = matcher.group();
-            result.add(Double.valueOf(matcherNumber.replace("个", "")));
+            if (unit != null) {
+                matcherNumber = matcherNumber.substring(0, matcherNumber.length() - 1);
+            }
+
+            Double count = Double.valueOf(matcherNumber);
+            if (!result.contains(count)) {
+                result.add(count);
+            }
         }
+
         return result;
     }
 
@@ -47,30 +60,53 @@ public class NumberRegExUtil {
      * get roman number(1~99) from zh in content
      * @param content
      */
-    public static List<Double> getNumberByZhNum(String content) {
+    public static List<Double> getNumberByZhNum(String content, String unit) {
         List<Double> result = new ArrayList<>();
-        //(一|二|三|四|五|六|七|八|九|十){1,3}个
-        String regexZhNumber = "(\\u4e00|\\u4e8c|\\u4e09|\\u56db|\\u4e94|\\u516d|\\u4e03|\\u516b|\\u4e5d|\\u5341){1,3}个";
+        //(一|二|三|四|五|六|七|八|九|十){1,3}
+        String regexZhNumber = "(\\u4e00|\\u4e8c|\\u4e09|\\u56db|\\u4e94|\\u516d|\\u4e03|\\u516b|\\u4e5d|\\u5341){1,3}";
+        if (unit != null) {
+            //(一|二|三|四|五|六|七|八|九|十){1,3}【unit】
+            regexZhNumber += unit;
+        }
+
         Pattern pattern = Pattern.compile(regexZhNumber);
         Matcher matcher = pattern.matcher(content);
         while (matcher.find()) {
             String matcherNumber = matcher.group();
-            matcherNumber = matcherNumber.replace("个", "");
-
-            double[] charArray = new double[3];
-            for (int i = 0; i < matcherNumber.length(); i++) {
-                charArray[i] = numMap.get(String.valueOf(matcherNumber.charAt(i)));
+            if (unit != null) {
+                matcherNumber = matcherNumber.substring(0, matcherNumber.length() - 1);
             }
 
-            Double number = charArray[0];
-            if (charArray.length == 2) {
-                number = charArray[0] * charArray[1];
-            } else if (charArray.length == 3) {
-                number = charArray[0] * charArray[1] + charArray[2];
+            List<Integer> charList = new ArrayList<>();
+            for (int i = 0; i < matcherNumber.length(); i++) {
+                charList.add(numMap.get(String.valueOf(matcherNumber.charAt(i))));
+            }
+
+            Double number = Double.valueOf(charList.get(0));
+            if (charList.size() == 2) {
+                number = Double.valueOf(charList.get(0) * charList.get(1));
+            } else if (charList.size() == 3) {
+                number = Double.valueOf(charList.get(0) * charList.get(1) + charList.get(2));
             }
             result.add(number);
         }
         return result;
+    }
+
+    /**
+     * check content without roman number
+     * @param content
+     */
+    public static boolean checkContentWithoutRomanNumber(String content) {
+        String numberPattern = "\\d{1,5}+(\\.\\d+)?";
+
+        Pattern pattern = Pattern.compile(numberPattern);
+        Matcher matcher = pattern.matcher(content);
+
+        if (!matcher.find()) {
+            return true;
+        }
+        return false;
     }
 
     //转换为unicode

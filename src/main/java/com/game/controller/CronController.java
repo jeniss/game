@@ -2,6 +2,7 @@ package com.game.controller;
 
 import com.game.entity.JsonEntity;
 import com.game.thread.ProcessDataThread;
+import com.game.util.ResponseHelper;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -27,8 +28,6 @@ public class CronController {
     public JsonEntity<String> crawlingDataToSaveCron() {
         ProcessDataThread thread = new ProcessDataThread();
         taskExecutor.execute(thread);
-        JsonEntity jsonEntity = new JsonEntity();
-        jsonEntity.setData("crawlingDataToSaveCron time:" + new Date());
-        return jsonEntity;
+        return ResponseHelper.createJsonEntity("crawlingDataToSaveCron time:" + new Date());
     }
 }

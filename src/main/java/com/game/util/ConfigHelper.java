@@ -42,6 +42,18 @@ public class ConfigHelper {
         return configHelper;
     }
 
+    public Map<String, String> refresh() {
+        if (instance.get() != null) {
+            IConfigService configService = (IConfigService) SpringContextUtil.getBean("configService");
+            List<Config> configList = configService.getAllConfig();
+            ConfigHelper configHelper = from(configList);
+            instance.get().keyValues.putAll(configHelper.keyValues);
+        } else {
+            init();
+        }
+        return instance.get().keyValues;
+    }
+
     private String getValue(String code) {
         return keyValues.get(code);
     }
@@ -49,6 +61,8 @@ public class ConfigHelper {
     private final static String VALID_IP = "valid.ip";
     private final static String MAIL_USERNAME = "mail.username";
     private final static String MAIL_PASSWORD = "mail.password";
+    private final static String REGEX_WITH_UNIT = "regex.with.unit";
+    private final static String REGEX_WITHOUT_UNIT = "regex.without.unit";
 
     public String getValidIp() {
         return getValue(VALID_IP);
@@ -60,5 +74,13 @@ public class ConfigHelper {
 
     public String getMailPassword() {
         return getValue(MAIL_PASSWORD);
+    }
+
+    public String getRegexWithUnit() {
+        return getValue(REGEX_WITH_UNIT);
+    }
+
+    public String getRegexWithoutUnit() {
+        return getValue(REGEX_WITHOUT_UNIT);
     }
 }

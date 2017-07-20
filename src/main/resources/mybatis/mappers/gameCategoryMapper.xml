@@ -18,4 +18,10 @@
         FROM game_category gc
         WHERE gc.type = 'item' AND gc.value = #{value}
     </select>
+
+    <select id="getGameCategoryByParentIdAndName" resultType="gameCategory">
+        SELECT gc.id, gc.game_id, gc.name, gc.code, gc.value
+        FROM game_category gc
+        WHERE gc.parent_id = #{parentId} AND gc.name = #{name}
+    </select>
 </mapper>

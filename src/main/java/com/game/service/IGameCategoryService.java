@@ -13,4 +13,6 @@ public interface IGameCategoryService {
     List<GameCategory> getAllKeysByItemCode(String itemCode);
 
     GameCategory getItemCategoryByValue(String value);
+
+    GameCategory getGameCategoryByParentIdAndName(Integer parentId, String name);
 }

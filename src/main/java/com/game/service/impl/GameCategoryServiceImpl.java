@@ -30,4 +30,9 @@ public class GameCategoryServiceImpl implements IGameCategoryService {
     public GameCategory getItemCategoryByValue(String value) {
         return gameCategoryMapper.getItemCategoryByValue(value);
     }
+
+    @Override
+    public GameCategory getGameCategoryByParentIdAndName(Integer parentId, String name) {
+        return gameCategoryMapper.getGameCategoryByParentIdAndName(parentId, name);
+    }
 }

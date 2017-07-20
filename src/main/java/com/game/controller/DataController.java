@@ -1,7 +1,6 @@
 package com.game.controller;
 
 import com.game.entity.JsonEntity;
-import com.game.enums.GameCategoryType;
 import com.game.model.Game;
 import com.game.model.GameCategory;
 import com.game.model.ServerArea;
@@ -9,6 +8,7 @@ import com.game.service.IGameCategoryService;
 import com.game.service.IGameService;
 import com.game.service.IProcessHTMLService;
 import com.game.service.IServerAreaService;
+import com.game.util.ResponseHelper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -49,17 +48,13 @@ public class DataController {
 
         if (url.contains("c=-2")) {
             // equipment
-            List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
-            for (GameCategory keyCategory : keyCategoryList) {
-                processHTMLService.processHtmlAndPost(game, serverArea, childServer, keyCategory, url);
-            }
+            GameCategory keyCategory = gameCategoryService.getGameCategoryByParentIdAndName(itemCategory.getId(), paramMap.get("key"));
+            processHTMLService.processHtmlAndPost(game, serverArea, childServer, keyCategory, url);
         } else if (url.contains("c=-3")) {
             // game coin
             processHTMLService.processHtmlAndPost(game, serverArea, childServer, itemCategory, url);
         }
 
-        JsonEntity jsonEntity = new JsonEntity();
-        jsonEntity.setData("addTradeFlowByUrl time:" + new Date());
-        return jsonEntity;
+        return ResponseHelper.createJsonEntity("addTradeFlowByUrl time:" + new Date());
     }
 }

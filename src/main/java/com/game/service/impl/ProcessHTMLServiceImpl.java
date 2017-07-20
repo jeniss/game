@@ -219,8 +219,6 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
      */
     private Document getDocument(String url) throws IOException {
         Document document = Jsoup.connect(url).timeout(10 * 1000).get();
-//        File file = new File(url);
-//        Document document = Jsoup.parse(file, "UTF-8");
         return document;
     }
 
@@ -326,18 +324,34 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
 
     /**
      * process the equipment count
+     * 1. get the count by romanNum or zhNum list which has the only one data.
      * @param content
      */
     private Double processCount(String content) {
         Double result = 0.0;
 
-        List<Double> numberByRomanNum = NumberRegExUtil.getNumberByRomanNum(content);
-        List<Double> numberByZhNum = NumberRegExUtil.getNumberByZhNum(content);
-
+        // get result by unit
+        List<Double> numberByRomanNum = NumberRegExUtil.getNumberByRomanNum(content, ConfigHelper.getInstance().getRegexWithUnit(), null);
+        List<Double> numberByZhNum = NumberRegExUtil.getNumberByZhNum(content, ConfigHelper.getInstance().getRegexWithUnit());
         if (numberByRomanNum.size() == 1 && numberByZhNum.size() == 0) {
             result = numberByRomanNum.get(0);
         } else if (numberByRomanNum.size() == 0 && numberByZhNum.size() == 1) {
             result = numberByZhNum.get(0);
+        }
+
+        // get result without unit by roman number
+        if (result == 0) {
+            numberByRomanNum = NumberRegExUtil.getNumberByRomanNum(content, null, ConfigHelper.getInstance().getRegexWithoutUnit());
+            if (numberByRomanNum.size() == 1) {
+                result = numberByRomanNum.get(0);
+            }
+        }
+
+        // get result without roman number
+        if (result == 0) {
+            if (NumberRegExUtil.checkContentWithoutRomanNumber(content)) {
+                result = 1.0;
+            }
         }
 
         return result;
