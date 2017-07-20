@@ -340,7 +340,7 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
         }
 
         // get result without unit by roman number
-        if (result == 0) {
+        if (result == 0 && numberByRomanNum.size() == 0 && numberByZhNum.size() == 0) {
             numberByRomanNum = NumberRegExUtil.getNumberByRomanNum(content, null, ConfigHelper.getInstance().getRegexWithoutUnit());
             if (numberByRomanNum.size() == 1) {
                 result = numberByRomanNum.get(0);
@@ -348,7 +348,7 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
         }
 
         // get result without roman number
-        if (result == 0) {
+        if (result == 0 && numberByRomanNum.size() == 0 && numberByZhNum.size() == 0) {
             if (NumberRegExUtil.checkContentWithoutRomanNumber(content)) {
                 result = 1.0;
             }
