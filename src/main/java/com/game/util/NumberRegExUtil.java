@@ -88,7 +88,10 @@ public class NumberRegExUtil {
             } else if (charList.size() == 3) {
                 number = Double.valueOf(charList.get(0) * charList.get(1) + charList.get(2));
             }
-            result.add(number);
+
+            if (!result.contains(number)) {
+                result.add(number);
+            }
         }
         return result;
     }
