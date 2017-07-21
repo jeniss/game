@@ -353,9 +353,9 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
 
         // get result without roman number
         if (result == 0 && numberByRomanNum.size() == 0 && numberByZhNum.size() == 0) {
-            if (NumberRegExUtil.checkContentWithoutRomanNumber(content)) {
-                result = 1.0;
-            }
+//            if (NumberRegExUtil.checkContentWithoutRomanNumber(content)) {
+            result = 1.0;
+//            }
         }
 
         return result;
