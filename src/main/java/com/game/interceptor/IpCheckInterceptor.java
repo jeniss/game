@@ -20,6 +20,7 @@ public class IpCheckInterceptor implements HandlerInterceptor {
         if (validIps.contains(request.getRemoteAddr())) {
             return true;
         }
+        logger.info(String.format("ip(%s) is invalid.", request.getRemoteAddr()));
         return false;
     }
 
