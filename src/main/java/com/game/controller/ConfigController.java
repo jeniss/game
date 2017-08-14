@@ -6,6 +6,8 @@ import com.game.util.ResponseHelper;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -17,6 +19,13 @@ public class ConfigController {
     @RequestMapping(value = "/updateConfig.do")
     public JsonEntity updateConfig() {
         Map<String, String> result = ConfigHelper.getInstance().refresh();
+        return ResponseHelper.createJsonEntity(result);
+    }
+
+    @RequestMapping(value = "/getRemoteIp.do")
+    public JsonEntity ge(HttpServletRequest request) {
+        Map<String, String> result = new HashMap<>();
+        result.put("ip", request.getRemoteAddr());
         return ResponseHelper.createJsonEntity(result);
     }
 }
