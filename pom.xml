@@ -217,15 +217,16 @@
                 <configuration>
                     <source>1.8</source>
                     <target>1.8</target>
+                    <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
             <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-war-plugin</artifactId>
-                <version>2.6</version>
                 <configuration>
-                    <warName>game</warName>
+                    <webappDirectory>${project.build.directory}/wars/${build.finalName}.${project.packaging}</webappDirectory>
+                    <failOnMissingWebXml>false</failOnMissingWebXml>
                 </configuration>
+                <version>3.0.0</version>
             </plugin>
         </plugins>
         <finalName>game</finalName>
