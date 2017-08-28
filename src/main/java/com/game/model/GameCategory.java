@@ -10,6 +10,13 @@ public class GameCategory {
     private String code;
     private String value;
 
+    public GameCategory() {
+    }
+
+    public GameCategory(Integer id) {
+        this.id = id;
+    }
+
     public Integer getId() {
         return id;
     }

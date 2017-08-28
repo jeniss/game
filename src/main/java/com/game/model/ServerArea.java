@@ -14,6 +14,13 @@ public class ServerArea {
     private ServerArea mergerServerArea;
     List<ServerArea> childServerAreas;
 
+    public ServerArea() {
+    }
+
+    public ServerArea(Integer id) {
+        this.id = id;
+    }
+
     public Integer getGameId() {
         return gameId;
     }
@@ -73,10 +80,10 @@ public class ServerArea {
     @Override
     public String toString() {
         return "ServerArea{" +
-               "id=" + id +
-               ", name='" + name + '\'' +
-               ", code='" + code + '\'' +
-               ", active='" + active + '\'' +
-               '}';
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", code='" + code + '\'' +
+                ", active='" + active + '\'' +
+                '}';
     }
 }
