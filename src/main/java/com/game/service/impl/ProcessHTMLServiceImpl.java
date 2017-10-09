@@ -1,7 +1,11 @@
 package com.game.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.game.enums.GameCategoryType;
 import com.game.enums.TradeStatusType;
+import com.game.exception.BizException;
+import com.game.exception.QuanWangBizException;
 import com.game.jms.bo.MailBo;
 import com.game.model.Game;
 import com.game.model.GameCategory;
@@ -25,7 +29,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import javax.jms.Destination;
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -217,9 +227,97 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
      * @return
      * @throws IOException
      */
-    private Document getDocument(String url) throws IOException {
-        Document document = Jsoup.connect(url).timeout(10 * 1000).get();
-        return document;
+    private Document getDocument(String url) {
+        StringBuilder html = new StringBuilder();
+        try {
+            // get one proxy ip for quan wang
+            Map<String, Object> ipInfoMap = this.getResultForQuanWang();
+
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress((String) ipInfoMap.get("ip"), (Integer) ipInfoMap.get("port")));
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection(proxy);
+            connection.setConnectTimeout(6000);// 6s
+            connection.setReadTimeout(6000);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line = null;
+            while ((line = reader.readLine()) != null) {
+                html.append(line);
+            }
+        } catch (Exception e) {
+
+        }
+
+        return Jsoup.parse(html.toString());
+    }
+
+    private String getHTML(String url) {
+        String html = null;
+        try {
+            /**
+             * get one proxy ip for quan wang.
+             * if getting the proxy form quan wang with 5 times are all failed, then throw the exception
+             */
+            Map<String, Object> ipInfoMap = null;
+            for (int i = 0; i < 5; i++) {
+                ipInfoMap = this.getResultForQuanWang();
+                if (ipInfoMap != null) {
+                    break;
+                }
+            }
+            if (ipInfoMap == null) {
+                throw new QuanWangBizException("Get the proxy ip is not success.");
+            }
+
+            /**
+             * get the html with proxy ip
+             */
+            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress((String) ipInfoMap.get("ip"), (Integer) ipInfoMap.get("port")));
+            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection(proxy);
+            connection.setConnectTimeout(6000);// 6s
+            connection.setReadTimeout(6000);
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line = null;
+            StringBuilder result = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                result.append(line);
+            }
+            return result.toString();
+        } catch (IOException e) {
+            try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e1) {
+                logger.warn(e1);
+            }
+            html = this.getHTML(url);
+        }
+        return html;
+    }
+
+    private Map<String, Object> getResultForQuanWang() {
+        try {
+            String quanWangProxyIpUrl = ConfigHelper.getInstance().getQuanWangProxyIpUrl();
+            HttpURLConnection connection = (HttpURLConnection) new URL(quanWangProxyIpUrl).openConnection();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+            String line = null;
+            StringBuilder stringBuilder = new StringBuilder();
+            while ((line = reader.readLine()) != null) {
+                stringBuilder.append(line);
+            }
+            JSONObject jsonObject = JSON.parseObject(stringBuilder.toString());
+            List<JSONObject> jsonObjectList = (List<JSONObject>) jsonObject.get("data");
+            if (CollectionUtils.isEmpty(jsonObjectList)) {
+                throw new BizException("There is no ips in quan wang.");
+            }
+            JSONObject ipInfoJsonObject = jsonObjectList.get(0);
+            Map<String, Object> result = new HashMap<>();
+            result.put("ip", ipInfoJsonObject.get("ip"));
+            result.put("port", ipInfoJsonObject.get("port"));
+            return result;
+        } catch (Exception e) {
+            throw new QuanWangBizException(e.getMessage());
+        }
     }
 
     /**

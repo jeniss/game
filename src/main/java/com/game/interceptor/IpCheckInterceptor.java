@@ -18,8 +18,8 @@ public class IpCheckInterceptor implements HandlerInterceptor {
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
         String validIps = ConfigHelper.getInstance().getValidIp();
         if (validIps.contains(request.getRemoteAddr())) {
-            return true;
-        }
+        return true;
+    }
         logger.info(String.format("ip(%s) is invalid.", request.getRemoteAddr()));
         return false;
     }
