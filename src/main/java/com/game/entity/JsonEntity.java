@@ -4,15 +4,15 @@ package com.game.entity;
  * Created by jeniss on 17/5/23.
  */
 public class JsonEntity<T> {
-    private String status;
+    private int status = 200;
     private String msg;
     private T data;
 
-    public String getStatus() {
+    public int getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(int status) {
         this.status = status;
     }
 
