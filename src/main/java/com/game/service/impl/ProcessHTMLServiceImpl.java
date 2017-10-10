@@ -5,7 +5,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.game.enums.GameCategoryType;
 import com.game.enums.TradeStatusType;
 import com.game.exception.BizException;
-import com.game.exception.QuanWangBizException;
+import com.game.exception.GetProxyIPException;
+import com.game.exception.ProxyRequestBizException;
 import com.game.jms.bo.MailBo;
 import com.game.model.Game;
 import com.game.model.GameCategory;
@@ -16,6 +17,7 @@ import com.game.service.ITradeFlowService;
 import com.game.template.TemplateName;
 import com.game.template.TemplateService;
 import com.game.util.ConfigHelper;
+import com.game.util.IPProxyUtil;
 import com.game.util.NumberRegExUtil;
 import com.game.util.StringUtil;
 import org.apache.log4j.Logger;
@@ -87,8 +89,10 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
             String msg = "----------- area:%s,server:%s,category:%s,size:%s -----------";
             logger.info(String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getName(), tradeFlowList.size()));
             Random random = new Random();
-            int sleepTime = (random.nextInt(30) + 30) * 1000;// 30s ~ 60s
+            int sleepTime = (random.nextInt(5) + 5) * 1000;// 5s ~ 10s
             Thread.sleep(sleepTime);
+        } catch (GetProxyIPException e) {
+            throw new BizException(e.getMessage(), e.getCause());
         } catch (Exception e) {
             String msg = String.format("area:%s,server:%s,category:%s", serverArea.getName(), childServer.getName(), gameCategory.getName());
 
@@ -122,10 +126,10 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
      * @param gameCategory
      * @param childServer
      */
-    @Override
-    public List<TradeFlow> getGameCoinTradeFlow(String urlStr, Game game, GameCategory gameCategory, ServerArea childServer) throws Exception {
+    private List<TradeFlow> getGameCoinTradeFlow(String urlStr, Game game, GameCategory gameCategory, ServerArea childServer) throws Exception {
         logger.info("-----------url: " + urlStr);
-        Document document = this.getDocument(urlStr);
+        String html = this.getHTML(urlStr, 0, 0);
+        Document document = Jsoup.parse(html);
         Elements contentElement = document.select("div[id=divCommodityLst] ul");
         List<TradeFlow> tradeFlowList = new ArrayList<>();
         if (contentElement != null) {
@@ -153,13 +157,13 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
      * @param keyCategory
      * @param childServer
      */
-    @Override
-    public List<TradeFlow> getEquipmentTradeFlow(List<TradeFlow> tradeFlowList, String urlStr, Game game, GameCategory keyCategory, ServerArea childServer) throws Exception {
+    private List<TradeFlow> getEquipmentTradeFlow(List<TradeFlow> tradeFlowList, String urlStr, Game game, GameCategory keyCategory, ServerArea childServer) throws Exception {
         urlStr = urlStr.replace(keyCategory.getName(), URLEncoder.encode(keyCategory.getName(), "UTF-8"));
 
         logger.info("-----------url: " + urlStr);
 
-        Document document = this.getDocument(urlStr);
+        String html = this.getHTML(urlStr, 0, 0);
+        Document document = Jsoup.parse(html);
         Elements contentElement = document.select("div[id=divCommodityLst] ul");
         if (tradeFlowList == null) {
             tradeFlowList = new ArrayList<>();
@@ -221,38 +225,20 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
         return tradeFlowList;
     }
 
+
     /**
-     * parse html by Jsoup
+     * get html form game page with the proxy ip
      * @param url
+     * @param processTimes
      * @return
-     * @throws IOException
      */
-    private Document getDocument(String url) {
-        StringBuilder html = new StringBuilder();
-        try {
-            // get one proxy ip for quan wang
-            Map<String, Object> ipInfoMap = this.getResultForQuanWang();
-
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress((String) ipInfoMap.get("ip"), (Integer) ipInfoMap.get("port")));
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection(proxy);
-            connection.setConnectTimeout(6000);// 6s
-            connection.setReadTimeout(6000);
-
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line = null;
-            while ((line = reader.readLine()) != null) {
-                html.append(line);
-            }
-        } catch (Exception e) {
-
-        }
-
-        return Jsoup.parse(html.toString());
-    }
-
-    private String getHTML(String url) {
+    private String getHTML(String url, int processTimes, int checkProxyIPTimes) {
         String html = null;
         try {
+            // if request the same url with 10 times, then the url as the bad url
+            if (processTimes == 10) {
+                throw new ProxyRequestBizException(String.format("url:%s cannot request.", url));
+            }
             /**
              * get one proxy ip for quan wang.
              * if getting the proxy form quan wang with 5 times are all failed, then throw the exception
@@ -265,39 +251,58 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
                 }
             }
             if (ipInfoMap == null) {
-                throw new QuanWangBizException("Get the proxy ip is not success.");
+                throw new GetProxyIPException("Get the proxy ip is not success.");
             }
 
             /**
              * get the html with proxy ip
              */
-            Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress((String) ipInfoMap.get("ip"), (Integer) ipInfoMap.get("port")));
-            HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection(proxy);
-            connection.setConnectTimeout(6000);// 6s
-            connection.setReadTimeout(6000);
+            String ip = (String) ipInfoMap.get("ip");
+            Integer port = (Integer) ipInfoMap.get("port");
+            // check the proxy ip whether is right. If not, re-request the proxy ip form quan wang
+            if (IPProxyUtil.getInstance().checkIpValid(ip, port, checkProxyIPTimes)) {
+                Proxy proxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(ip, port));
+                HttpURLConnection connection = (HttpURLConnection) new URL(url).openConnection(proxy);
+                connection.setConnectTimeout(6000);// 6s
+                connection.setReadTimeout(6000);
 
-            BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-            String line = null;
-            StringBuilder result = new StringBuilder();
-            while ((line = reader.readLine()) != null) {
-                result.append(line);
+                BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
+                String line = null;
+                StringBuilder result = new StringBuilder();
+                while ((line = reader.readLine()) != null) {
+                    result.append(line);
+                }
+                html = result.toString();
+            } else {
+                try {
+                    Thread.sleep(2000);
+                } catch (InterruptedException e1) {
+                    logger.warn(e1);
+                }
+                html = this.getHTML(url, processTimes, ++checkProxyIPTimes);
             }
-            return result.toString();
         } catch (IOException e) {
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException e1) {
                 logger.warn(e1);
             }
-            html = this.getHTML(url);
+            html = this.getHTML(url, ++processTimes, 0);
         }
         return html;
     }
 
+    /**
+     * get the proxy ip form quan wang
+     * @return
+     */
     private Map<String, Object> getResultForQuanWang() {
+        Map<String, Object> result = null;
         try {
             String quanWangProxyIpUrl = ConfigHelper.getInstance().getQuanWangProxyIpUrl();
             HttpURLConnection connection = (HttpURLConnection) new URL(quanWangProxyIpUrl).openConnection();
+            connection.setConnectTimeout(6 * 1000);
+            connection.setReadTimeout(6 * 1000);
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
             String line = null;
@@ -310,14 +315,14 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
             if (CollectionUtils.isEmpty(jsonObjectList)) {
                 throw new BizException("There is no ips in quan wang.");
             }
+            result = new HashMap<>();
             JSONObject ipInfoJsonObject = jsonObjectList.get(0);
-            Map<String, Object> result = new HashMap<>();
             result.put("ip", ipInfoJsonObject.get("ip"));
             result.put("port", ipInfoJsonObject.get("port"));
-            return result;
         } catch (Exception e) {
-            throw new QuanWangBizException(e.getMessage());
+            logger.error(e);
         }
+        return result;
     }
 
     /**

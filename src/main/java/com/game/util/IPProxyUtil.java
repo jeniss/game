@@ -1,7 +1,7 @@
 package com.game.util;
 
+import com.game.exception.GetProxyIPException;
 import org.apache.log4j.Logger;
-import org.springframework.util.CollectionUtils;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
@@ -9,8 +9,6 @@ import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Created by jennifert on 09/25/17.
@@ -30,23 +28,17 @@ public class IPProxyUtil {
         return Inner.INSTANCE;
     }
 
-    public Map<String, Integer> getValidProxyIps(Map<String, Integer> proxyIps) {
-        if (CollectionUtils.isEmpty(proxyIps)) {
-            return null;
+    /**
+     * check the ip whether is valid
+     * @param ip
+     * @param port
+     * @param processTimes test times
+     * @return
+     */
+    public boolean checkIpValid(String ip, Integer port, int processTimes) {
+        if (processTimes > 10) {
+            throw new GetProxyIPException("The proxy ip has something wrong.");
         }
-        Map<String, Integer> result = new HashMap<String, Integer>();
-        for (Map.Entry entry : proxyIps.entrySet()) {
-            String ip = String.valueOf(entry.getKey());
-            Integer port = (Integer) entry.getValue();
-            boolean isValid = this.checkIpValid(ip, port);
-            if (isValid) {
-                result.put(ip, port);
-            }
-        }
-        return result;
-    }
-
-    public boolean checkIpValid(String ip, Integer port) {
         boolean isValid = false;
         String testUrl = "http://www.baidu.com";
         try {
@@ -60,16 +52,10 @@ public class IPProxyUtil {
                 isValid = true;
             }
         } catch (MalformedURLException e) {
-//            LOG.error(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
+            LOG.warn(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
         } catch (IOException e) {
-//            LOG.error(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
+            LOG.warn(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
         }
         return isValid;
-    }
-
-    public static void main(String[] args) {
-        String ip = "123.182.137.47";
-        Integer port = 9000;
-        System.out.println("result:" + IPProxyUtil.getInstance().checkIpValid(ip, port));
     }
 }
