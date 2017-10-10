@@ -92,6 +92,7 @@ public class ProcessHTMLServiceImpl implements IProcessHTMLService {
             int sleepTime = (random.nextInt(5) + 5) * 1000;// 5s ~ 10s
             Thread.sleep(sleepTime);
         } catch (GetProxyIPException e) {
+            logger.error(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
             throw new BizException(e.getMessage(), e.getCause());
         } catch (Exception e) {
             String msg = String.format("area:%s,server:%s,category:%s", serverArea.getName(), childServer.getName(), gameCategory.getName());
