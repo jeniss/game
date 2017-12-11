@@ -21,7 +21,7 @@ public class IpCheckInterceptor implements HandlerInterceptor {
             return true;
         }
         logger.info(String.format("ip(%s) is invalid.", request.getRemoteAddr()));
-        return false;
+        return true;
     }
 
     @Override

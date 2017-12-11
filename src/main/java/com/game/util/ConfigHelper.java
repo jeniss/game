@@ -63,7 +63,6 @@ public class ConfigHelper {
     private final static String MAIL_PASSWORD = "mail.password";
     private final static String REGEX_WITH_UNIT = "regex.with.unit";
     private final static String REGEX_WITHOUT_UNIT = "regex.without.unit";
-    private final static String QUAN_WANG_PROXY_IP_URL = "quan.wang.proxy.ip.url";
 
     public String getValidIp() {
         return getValue(VALID_IP);
@@ -85,7 +84,4 @@ public class ConfigHelper {
         return getValue(REGEX_WITHOUT_UNIT);
     }
 
-    public String getQuanWangProxyIpUrl() {
-        return getValue(QUAN_WANG_PROXY_IP_URL);
-    }
 }
