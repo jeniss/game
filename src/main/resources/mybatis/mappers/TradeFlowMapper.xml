@@ -3,12 +3,12 @@
 <mapper namespace="com.game.mapper.ITradeFlowMapper">
     <insert id="postTradeFlowBatch" parameterType="java.util.List">
         INSERT INTO trade_flow
-        (game_id, server_area_id, category_id, name, price, stock, total_price, unit_price, unit_price_desc, trade_status, entry_datetime)
+        (game_id, server_area_id, category_id, name, price, stock, total_price, unit_price, unit_price_desc, trade_status, entry_datetime, server_name)
         VALUES
         <foreach collection="list" item="tradeFlow" separator=",">
             (
             #{tradeFlow.game.id}, #{tradeFlow.serverArea.id}, #{tradeFlow.gameCategory.id}, #{tradeFlow.name}, #{tradeFlow.price},
-            #{tradeFlow.stock}, #{tradeFlow.totalPrice}, #{tradeFlow.unitPrice}, #{tradeFlow.unitPriceDesc}, #{tradeFlow.tradeStatus}, NOW()
+            #{tradeFlow.stock}, #{tradeFlow.totalPrice}, #{tradeFlow.unitPrice}, #{tradeFlow.unitPriceDesc}, #{tradeFlow.tradeStatus}, NOW(), #{tradeFlow.serverName}
             )
         </foreach>
     </insert>

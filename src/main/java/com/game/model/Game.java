@@ -7,6 +7,7 @@ public class Game {
     private Integer id;
     private String name;
     private String code;
+    private String active;
 
     public Game() {
     }
@@ -37,5 +38,13 @@ public class Game {
 
     public void setCode(String code) {
         this.code = code;
+    }
+
+    public String getActive() {
+        return active;
+    }
+
+    public void setActive(String active) {
+        this.active = active;
     }
 }

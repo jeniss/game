@@ -11,5 +11,7 @@ import java.util.List;
 public interface IGameMapper {
     List<Game> getAllGameList();
 
+    List<Game> getActiveGameList();
+
     Game getGameByCode(@Param("code") String code);
 }

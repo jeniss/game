@@ -1,7 +1,7 @@
 <html>
 <div>
     <h3>${msg} is failed.</h3>
-    <h4>url: ${url}</h4>
+
     <div>
         error message:
     </div>

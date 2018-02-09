@@ -3,9 +3,9 @@ package com.game.service.impl;
 import com.game.mapper.IConfigMapper;
 import com.game.model.Config;
 import com.game.service.IConfigService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -13,7 +13,7 @@ import java.util.List;
  */
 @Service(value = "configService")
 public class ConfigServiceImpl implements IConfigService {
-    @Resource
+    @Autowired
     private IConfigMapper configMapper;
 
     @Override

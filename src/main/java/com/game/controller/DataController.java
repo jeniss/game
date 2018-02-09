@@ -5,11 +5,13 @@ import com.game.exception.BizException;
 import com.game.model.Game;
 import com.game.model.GameCategory;
 import com.game.model.ServerArea;
+import com.game.plugins.phantomjs.GhostWebDriver;
 import com.game.service.IGameCategoryService;
 import com.game.service.IGameService;
-import com.game.service.IProcessHTMLService;
+import com.game.service.ISeleniumProcessHTMLService;
 import com.game.service.IServerAreaService;
 import com.game.util.ResponseHelper;
+import org.openqa.selenium.WebDriver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -29,11 +31,11 @@ public class DataController {
     @Autowired
     private IGameCategoryService gameCategoryService;
     @Autowired
-    private IProcessHTMLService processHTMLService;
-    @Autowired
     private IGameService gameService;
     @Autowired
     private IServerAreaService serverAreaService;
+    @Autowired
+    private ISeleniumProcessHTMLService seleniumProcessHTMLService;
 
     @RequestMapping(value = "/tradeFlowByUrl.do", method = RequestMethod.POST)
     public JsonEntity addTradeFlowByUrl(String url) {
@@ -48,13 +50,17 @@ public class DataController {
         ServerArea childServer = serverAreaService.getServerAreaByParentIdAndCode(serverArea.getId(), paramMap.get("srv"));
         GameCategory itemCategory = gameCategoryService.getItemCategoryByValue(paramMap.get("c"));
 
+        WebDriver webDriver = (new GhostWebDriver()).getWebDriver();
+        webDriver.get(url);
+
         if (url.contains("c=-2")) {
             // equipment
             GameCategory keyCategory = gameCategoryService.getGameCategoryByParentIdAndName(itemCategory.getId(), paramMap.get("key"));
-            processHTMLService.processHtmlAndPost(game, serverArea, childServer, keyCategory, url);
+
+            seleniumProcessHTMLService.processHtmlAndPost(webDriver, game, serverArea, childServer, itemCategory, keyCategory);
         } else if (url.contains("c=-3")) {
             // game coin
-            processHTMLService.processHtmlAndPost(game, serverArea, childServer, itemCategory, url);
+            seleniumProcessHTMLService.processHtmlAndPost(webDriver, game, serverArea, childServer, itemCategory, null);
         }
 
         return ResponseHelper.createJsonEntity("addTradeFlowByUrl time:" + new Date());

@@ -8,7 +8,7 @@ import java.util.List;
  * Created by jennifert on 5/18/2017.
  */
 public interface IServerAreaService {
-    List<ServerArea> getAll();
+    List<ServerArea> getAllByGameId(Integer gameId);
 
     ServerArea getServerAreaByParentIdAndCode(Integer parentId, String code);
 }

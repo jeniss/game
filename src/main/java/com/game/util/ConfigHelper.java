@@ -63,6 +63,9 @@ public class ConfigHelper {
     private final static String MAIL_PASSWORD = "mail.password";
     private final static String REGEX_WITH_UNIT = "regex.with.unit";
     private final static String REGEX_WITHOUT_UNIT = "regex.without.unit";
+    private final static String GAME_URL = "game.url";
+    private final static String WEB_DRIVER_PATH = "web.driver.path";
+    private final static String RECEIVE_EMAIL = "receive.email";
 
     public String getValidIp() {
         return getValue(VALID_IP);
@@ -83,5 +86,15 @@ public class ConfigHelper {
     public String getRegexWithoutUnit() {
         return getValue(REGEX_WITHOUT_UNIT);
     }
+
+    public String getGameUrl() {
+        return getValue(GAME_URL);
+    }
+
+    public String getWebDriverPath() {
+        return getValue(WEB_DRIVER_PATH);
+    }
+
+    public String getReceiveEmail(){return  getValue(RECEIVE_EMAIL);}
 
 }

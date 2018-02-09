@@ -18,6 +18,8 @@ public class TradeFlow {
     private String unitPriceDesc;
     private String tradeStatus;
     private Date entryDatetime;
+    // the big game server name/child server name
+    private String serverName;
 
     public Integer getId() {
         return id;
@@ -113,5 +115,13 @@ public class TradeFlow {
 
     public void setEntryDatetime(Date entryDatetime) {
         this.entryDatetime = entryDatetime;
+    }
+
+    public String getServerName() {
+        return serverName;
+    }
+
+    public void setServerName(String serverName) {
+        this.serverName = serverName;
     }
 }

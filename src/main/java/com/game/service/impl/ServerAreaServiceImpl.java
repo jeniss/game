@@ -18,8 +18,8 @@ public class ServerAreaServiceImpl implements IServerAreaService {
     private IServerAreaMapper serverAreaMapper;
 
     @Override
-    public List<ServerArea> getAll() {
-        return serverAreaMapper.getAll();
+    public List<ServerArea> getAllByGameId(Integer gameId) {
+        return serverAreaMapper.getAllByGameId(gameId);
     }
 
     @Override

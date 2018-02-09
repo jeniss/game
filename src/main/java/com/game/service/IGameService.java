@@ -10,5 +10,7 @@ import java.util.List;
 public interface IGameService {
     List<Game> getAllGameList();
 
+    List<Game> getActiveGameList();
+
     Game getGameByCode(String code);
 }

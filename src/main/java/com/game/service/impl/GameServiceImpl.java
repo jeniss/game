@@ -25,9 +25,17 @@ public class GameServiceImpl implements IGameService {
     }
 
     /**
+     * gat all active game list
+     * @return
+     */
+    @Override
+    public List<Game> getActiveGameList() {
+        return gameMapper.getActiveGameList();
+    }
+
+    /**
      * get game by code
      * @param code
-     * @return
      */
     @Override
     public Game getGameByCode(String code) {

@@ -3,6 +3,6 @@
 <mapper namespace="com.game.mapper.IConfigMapper">
     <select id="getAllConfig" resultType="config">
         SELECT *
-        FROM config c
+        FROM config
     </select>
 </mapper>
