@@ -104,7 +104,13 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                 msg = String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getName(), (keyCategory == null ? "" : keyCategory.getName()));
             }
             logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ", " + msg, e);
-            String screenshotFilePath = SeleniumCommonLibs.screenshot(ghostWebDriver.getWebDriver());
+            List<String> files = new ArrayList<>();
+            String exceptionMsg = e.getMessage();
+            if (e instanceof WebDriverException && exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
+                String screenshotFilePath = SeleniumCommonLibs.screenshot(ghostWebDriver.getWebDriver());
+                files.add(screenshotFilePath);
+            }
+            logger.info(String.format("------- exception:%s, msg:%s", e.getClass(), exceptionMsg));
             try {
                 logger.info("---------------------- send error message to email -----------");
                 Map<String, Object> templateParams = new HashMap<>();
@@ -118,8 +124,6 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                 mailBo.setMailTo(ConfigHelper.getInstance().getReceiveEmail());
                 mailBo.setSubject(msg);
                 mailBo.setMsgContent(templateHtml);
-                List<String> files = new ArrayList<>();
-                files.add(screenshotFilePath);
                 mailBo.setAttachments(files);
                 jmsTemplate.convertAndSend(destination, mailBo);
             } catch (Exception e1) {
@@ -127,17 +131,18 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             }
 
             if (e instanceof ServerNotExistException) {
-                logger.info("------- ServerNotExistException --------");
                 result = false;
             } else if (e instanceof WebDriverException) {
-                String exceptionMsg = e.getMessage();
-                logger.info("------- WebDriverException, msg:%s" + exceptionMsg);
                 if (exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
                     ghostWebDriver.quit();
                     this.waitForAWhile(1000 * 60);
                     String url = ConfigHelper.getInstance().getGameUrl() + "gm=" + game.getCode();
-                    ghostWebDriver.getWebDriver().get(url);
-                    this.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, gameCategory, keyCategory);
+                    try {
+                        ghostWebDriver.getWebDriver().get(url);
+                        this.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, gameCategory, keyCategory);
+                    } catch (Exception e1) {
+                        logger.error("reconnection exception", e1);
+                    }
                 }
             }
         }
