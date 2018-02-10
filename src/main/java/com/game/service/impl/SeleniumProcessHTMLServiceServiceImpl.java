@@ -64,6 +64,9 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
      */
     @Override
     public Boolean processHtmlAndPost(GhostWebDriver ghostWebDriver, Game game, ServerArea serverArea, ServerArea childServer, GameCategory gameCategory, GameCategory keyCategory) {
+        // sleep
+        this.waitForAWhile(null);
+
         boolean result = true;
         String msg = null;
         if (keyCategory == null) {
@@ -89,10 +92,9 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                 tradeFlowService.postTradeFlowBatch(tradeFlowList);
             }
 
-            // end log, sleep
+            // end log
             msg = "----------- processed total count:%s -----------";
             logger.info(String.format(msg, tradeFlowList.size()));
-            this.waitForAWhile(null);
         } catch (Exception e) {
             if (keyCategory == null) {
                 msg = "----------- area:%s,server:%s,category:%s -----------";
