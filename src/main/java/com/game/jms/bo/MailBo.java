@@ -1,20 +1,19 @@
 package com.game.jms.bo;
 
-import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by jennifert on 7/17/2017.
  */
-public class MailBo implements Serializable{
+public class MailBo implements Serializable {
     private String from;// split by “;”
     private String replayTo;// split by “;”
     private String mailTo;// split by “;”
     private String cc;// split by “;”
     private String subject;
     private String msgContent;
-    private String attachName;
-    private File attachFile;
+    private List<String> attachments;
     private String invitation;
 
     public String getFrom() {
@@ -65,20 +64,12 @@ public class MailBo implements Serializable{
         this.msgContent = msgContent;
     }
 
-    public String getAttachName() {
-        return attachName;
+    public List<String> getAttachments() {
+        return attachments;
     }
 
-    public void setAttachName(String attachName) {
-        this.attachName = attachName;
-    }
-
-    public File getAttachFile() {
-        return attachFile;
-    }
-
-    public void setAttachFile(File attachFile) {
-        this.attachFile = attachFile;
+    public void setAttachments(List<String> attachments) {
+        this.attachments = attachments;
     }
 
     public String getInvitation() {

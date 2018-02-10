@@ -11,7 +11,7 @@ import com.game.service.IGameService;
 import com.game.service.ISeleniumProcessHTMLService;
 import com.game.service.IServerAreaService;
 import com.game.util.ResponseHelper;
-import org.openqa.selenium.WebDriver;
+import com.game.util.SeleniumCommonLibs;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -39,31 +39,36 @@ public class DataController {
 
     @RequestMapping(value = "/tradeFlowByUrl.do", method = RequestMethod.POST)
     public JsonEntity addTradeFlowByUrl(String url) {
-        // process url
-        String[] params = url.split("\\?")[1].split("\\&");
-        Map<String, String> paramMap = new HashMap<>();
-        for (String paramKeyValue : params) {
-            paramMap.put(paramKeyValue.split("=")[0], paramKeyValue.split("=")[1]);
+        GhostWebDriver ghostWebDriver = new GhostWebDriver();
+        try {
+            // process url
+            String[] params = url.split("\\?")[1].split("\\&");
+            Map<String, String> paramMap = new HashMap<>();
+            for (String paramKeyValue : params) {
+                paramMap.put(paramKeyValue.split("=")[0], paramKeyValue.split("=")[1]);
+            }
+            Game game = gameService.getGameByCode(paramMap.get("gm"));
+            ServerArea serverArea = serverAreaService.getServerAreaByParentIdAndCode(null, paramMap.get("area"));
+            ServerArea childServer = serverAreaService.getServerAreaByParentIdAndCode(serverArea.getId(), paramMap.get("srv"));
+            GameCategory itemCategory = gameCategoryService.getItemCategoryByValue(paramMap.get("c"));
+
+            SeleniumCommonLibs.goToPage(ghostWebDriver.getWebDriver(), url);
+
+            if (url.contains("c=-2")) {
+                // equipment
+                GameCategory keyCategory = gameCategoryService.getGameCategoryByParentIdAndName(itemCategory.getId(), paramMap.get("key"));
+
+                seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, keyCategory);
+            } else if (url.contains("c=-3")) {
+                // game coin
+                seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, null);
+            }
+            return ResponseHelper.createJsonEntity("addTradeFlowByUrl time:" + new Date());
+        } catch (Exception e) {
+            return ResponseHelper.createJsonEntity(e.getMessage());
+        } finally {
+            ghostWebDriver.quit();
         }
-        Game game = gameService.getGameByCode(paramMap.get("gm"));
-        ServerArea serverArea = serverAreaService.getServerAreaByParentIdAndCode(null, paramMap.get("area"));
-        ServerArea childServer = serverAreaService.getServerAreaByParentIdAndCode(serverArea.getId(), paramMap.get("srv"));
-        GameCategory itemCategory = gameCategoryService.getItemCategoryByValue(paramMap.get("c"));
-
-        WebDriver webDriver = (new GhostWebDriver()).getWebDriver();
-        webDriver.get(url);
-
-        if (url.contains("c=-2")) {
-            // equipment
-            GameCategory keyCategory = gameCategoryService.getGameCategoryByParentIdAndName(itemCategory.getId(), paramMap.get("key"));
-
-            seleniumProcessHTMLService.processHtmlAndPost(webDriver, game, serverArea, childServer, itemCategory, keyCategory);
-        } else if (url.contains("c=-3")) {
-            // game coin
-            seleniumProcessHTMLService.processHtmlAndPost(webDriver, game, serverArea, childServer, itemCategory, null);
-        }
-
-        return ResponseHelper.createJsonEntity("addTradeFlowByUrl time:" + new Date());
     }
 
     @RequestMapping("/test.do")

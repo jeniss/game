@@ -9,6 +9,7 @@ import com.game.model.Game;
 import com.game.model.GameCategory;
 import com.game.model.ServerArea;
 import com.game.model.TradeFlow;
+import com.game.plugins.phantomjs.GhostWebDriver;
 import com.game.service.ISeleniumProcessHTMLService;
 import com.game.service.ITradeFlowService;
 import com.game.template.TemplateName;
@@ -20,6 +21,7 @@ import com.game.util.StringUtil;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jms.core.JmsTemplate;
@@ -53,15 +55,15 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
 
     /**
      * process html and save the trade flow
-     * @param webDriver
+     * @param ghostWebDriver
      * @param game
      * @param serverArea
      * @param childServer
-     * @param gameCategory : itemCategory / gameCategory
+     * @param gameCategory   : itemCategory / gameCategory
      * @param keyCategory
      */
     @Override
-    public Boolean processHtmlAndPost(WebDriver webDriver, Game game, ServerArea serverArea, ServerArea childServer, GameCategory gameCategory, GameCategory keyCategory) {
+    public Boolean processHtmlAndPost(GhostWebDriver ghostWebDriver, Game game, ServerArea serverArea, ServerArea childServer, GameCategory gameCategory, GameCategory keyCategory) {
         boolean result = true;
         String msg = null;
         if (keyCategory == null) {
@@ -72,15 +74,14 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             logger.info(String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getName(), (keyCategory == null ? "" : keyCategory.getName())));
         }
         try {
-
             List<TradeFlow> tradeFlowList = null;
 
             if (GameCategoryType.gameCoin.name().equals(gameCategory.getCode())) {
-                this.gotoExactListPage(webDriver, serverArea, childServer, gameCategory, null);
-                tradeFlowList = this.getGameCoinTradeFlow(webDriver, game, gameCategory, childServer);
+                this.gotoExactListPage(ghostWebDriver.getWebDriver(), serverArea, childServer, gameCategory, null);
+                tradeFlowList = this.getGameCoinTradeFlow(ghostWebDriver.getWebDriver(), game, gameCategory, childServer);
             } else if (GameCategoryType.equipment.name().equals(gameCategory.getCode())) {
-                this.gotoExactListPage(webDriver, serverArea, childServer, gameCategory, keyCategory.getName());
-                tradeFlowList = this.getEquipmentTradeFlow(webDriver, game, keyCategory, childServer);
+                this.gotoExactListPage(ghostWebDriver.getWebDriver(), serverArea, childServer, gameCategory, keyCategory.getName());
+                tradeFlowList = this.getEquipmentTradeFlow(ghostWebDriver.getWebDriver(), game, keyCategory, childServer);
             }
 
             // save to DB
@@ -91,13 +92,19 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             // end log, sleep
             msg = "----------- processed total count:%s -----------";
             logger.info(String.format(msg, tradeFlowList.size()));
-            Random random = new Random();
-            int sleepTime = (random.nextInt(5) + 5) * 1000;// 5s ~ 10s
-            Thread.sleep(sleepTime);
+            this.waitForAWhile(null);
         } catch (Exception e) {
+            if (keyCategory == null) {
+                msg = "----------- area:%s,server:%s,category:%s -----------";
+                msg = String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getName());
+            } else {
+                msg = "----------- area:%s,server:%s,category:%s, keyCategory:%s -----------";
+                msg = String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getName(), (keyCategory == null ? "" : keyCategory.getName()));
+            }
+            logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ", " + msg, e);
+            String screenshotFilePath = SeleniumCommonLibs.screenshot(ghostWebDriver.getWebDriver());
             try {
                 logger.info("---------------------- send error message to email -----------");
-                msg = String.format("area:%s,server:%s,category:%s", serverArea.getName(), childServer.getName(), gameCategory.getName());
                 Map<String, Object> templateParams = new HashMap<>();
                 templateParams.put("msg", msg);
                 templateParams.put("exceptionMsg", e.toString());
@@ -109,6 +116,9 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                 mailBo.setMailTo(ConfigHelper.getInstance().getReceiveEmail());
                 mailBo.setSubject(msg);
                 mailBo.setMsgContent(templateHtml);
+                List<String> files = new ArrayList<>();
+                files.add(screenshotFilePath);
+                mailBo.setAttachments(files);
                 jmsTemplate.convertAndSend(destination, mailBo);
             } catch (Exception e1) {
                 logger.error(e1);
@@ -116,8 +126,16 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
 
             if (e instanceof ServerNotExistException) {
                 result = false;
+            } else if (e instanceof WebDriverException) {
+                String exceptionMsg = e.getMessage();
+                if (exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
+                    ghostWebDriver.quit();
+                    this.waitForAWhile(1000 * 60);
+                    String url = ConfigHelper.getInstance().getGameUrl() + "gm=" + game.getCode();
+                    ghostWebDriver.getWebDriver().get(url);
+                    this.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, gameCategory, keyCategory);
+                }
             }
-            logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ", " + msg, e);
         }
         return result;
     }
@@ -177,9 +195,7 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             Integer count = Integer.parseInt(countStr);
             for (int i = 1; i < count; i++) {
                 // sleep
-                Random random = new Random();
-                int sleepTime = (random.nextInt(5) + 5) * 1000;// 30s ~ 60s
-                Thread.sleep(sleepTime);
+                this.waitForAWhile(null);
 
                 Integer index = i + 1;
                 // process url
@@ -192,7 +208,7 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                     }
                 }
                 newUrl.append("p=" + String.valueOf(index));
-                logger.info("-----------url: " + newUrl);
+                logger.info("----------- next page url: " + newUrl);
                 webDriver.get(newUrl.toString());
                 tradeFlowList = this.getEquipmentTradeFlowsInOnePage(webDriver, tradeFlowList, game, keyCategory, childServer);
             }
@@ -373,7 +389,6 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
         }
         boolean isExist = false;
         // choose the big server of game
-        // the big area of game
         webDriver.findElement(By.xpath("//*[@id='exactselectbox']/li[2]")).click();
         WebElement areaListElement = webDriver.findElement(By.id("arealist"));
         List<WebElement> liElements = areaListElement.findElements(By.tagName("li"));
@@ -423,6 +438,19 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
         if (keyword != null) {
             webDriver.findElement(By.id("commonKey")).sendKeys(keyword);
             webDriver.findElement(By.id("serach")).click();
+        }
+    }
+
+    private void waitForAWhile(Integer waitTime) {
+        Random random = new Random();
+        int sleepTime = (random.nextInt(20) + 10) * 1000;// 10s ~ 30s
+        if (waitTime != null) {
+            sleepTime = waitTime;
+        }
+        try {
+            Thread.sleep(sleepTime);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
     }
 }

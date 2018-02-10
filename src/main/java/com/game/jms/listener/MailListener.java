@@ -25,8 +25,7 @@ public class MailListener implements SessionAwareMessageListener<ObjectMessage> 
             Thread.sleep(60000);
 
             MailBo mailBo = (MailBo) objectMessageConvert.fromMessage(objectMessage);
-            MailUtil.send(mailBo.getFrom(), mailBo.getReplayTo(), mailBo.getMailTo(), mailBo.getCc(), mailBo.getSubject(), mailBo.getMsgContent(), mailBo.getAttachName(), mailBo
-                    .getAttachFile(), mailBo.getInvitation());
+            MailUtil.send(mailBo.getFrom(), mailBo.getReplayTo(), mailBo.getMailTo(), mailBo.getCc(), mailBo.getSubject(), mailBo.getMsgContent(), mailBo.getAttachments(), mailBo.getInvitation());
         } catch (InterruptedException e) {
             LOGGER.error(Thread.currentThread().getStackTrace()[1].getMethodName(), e);
         }

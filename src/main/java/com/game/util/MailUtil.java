@@ -1,5 +1,8 @@
 package com.game.util;
 
+import org.apache.log4j.Logger;
+import org.springframework.util.CollectionUtils;
+
 import javax.activation.DataHandler;
 import javax.activation.FileDataSource;
 import javax.mail.Message;
@@ -22,15 +25,17 @@ import java.util.Properties;
 
 /**
  * Created by jennifert on 7/17/2017.
+ * javaMail
  */
 public class MailUtil {
+    private static final Logger logger = Logger.getLogger(MailUtil.class);
 
     public static void send(String from, String mailTo, String subject, String msgContent) {
-        send(from, null, mailTo, null, subject, msgContent, null, null, null);
+        send(from, null, mailTo, null, subject, msgContent, null, null);
     }
 
-    public static void send(String from, String replayTo, String mailTo, String cc, String subject, String msgContent, String attachName, File attachFile,
-                            String invitation) {
+    public static void send(
+            String from, String replayTo, String mailTo, String cc, String subject, String msgContent, List<String> attachments, String invitation) {
         Properties props = System.getProperties();
         String host = "smtp.163.com";
         props.put("mail.smtp.host", host);
@@ -68,15 +73,24 @@ public class MailUtil {
                 mp.addBodyPart(mbp1);
             }
 
-            if (attachName != null && attachName.trim().length() > 0
-                    && attachFile != null) {
-                MimeBodyPart mbp2 = new MimeBodyPart();
-                FileDataSource fds = new FileDataSource(attachFile);
-                mbp2.setDataHandler(new DataHandler(fds));
-                mbp2.setFileName(attachName);
-
-                mp.addBodyPart(mbp2);
+            if (!CollectionUtils.isEmpty(attachments)) {
+                for (String attachFilePath : attachments) {
+                    MimeBodyPart mbp2 = new MimeBodyPart();
+                    File file = null;
+                    file = new File(attachFilePath);
+                    if (!file.exists()) {
+                        logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ":" + String.format("The file(%s) doesn't exist.", attachFilePath));
+                        continue;
+                    }
+                    FileDataSource fds = new FileDataSource(file);
+                    mbp2.setDataHandler(new DataHandler(fds));
+                    String[] attachFilePathArray = attachFilePath.split(File.separator);
+                    String fileName = attachFilePathArray[attachFilePathArray.length - 1];
+                    mbp2.setFileName(MimeUtility.encodeWord(fileName));
+                    mp.addBodyPart(mbp2);
+                }
             }
+
             if (invitation != null) {
                 MimeBodyPart icaPart = new MimeBodyPart();
                 icaPart.setDataHandler(new DataHandler(new ByteArrayDataSource(new ByteArrayInputStream(invitation.getBytes()), "text/calendar;method=REQUEST;charset=\"UTF-8\"")));

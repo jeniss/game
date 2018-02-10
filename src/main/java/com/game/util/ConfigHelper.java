@@ -66,6 +66,8 @@ public class ConfigHelper {
     private final static String GAME_URL = "game.url";
     private final static String WEB_DRIVER_PATH = "web.driver.path";
     private final static String RECEIVE_EMAIL = "receive.email";
+    private final static String SELENIUM_LOG_PATH = "selenium.log.path";
+
 
     public String getValidIp() {
         return getValue(VALID_IP);
@@ -95,6 +97,12 @@ public class ConfigHelper {
         return getValue(WEB_DRIVER_PATH);
     }
 
-    public String getReceiveEmail(){return  getValue(RECEIVE_EMAIL);}
+    public String getReceiveEmail() {
+        return getValue(RECEIVE_EMAIL);
+    }
+
+    public String getSeleniumLogPath() {
+        return getValue(SELENIUM_LOG_PATH);
+    }
 
 }
