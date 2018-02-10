@@ -127,9 +127,11 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             }
 
             if (e instanceof ServerNotExistException) {
+                logger.info("------- ServerNotExistException --------");
                 result = false;
             } else if (e instanceof WebDriverException) {
                 String exceptionMsg = e.getMessage();
+                logger.info("------- WebDriverException, msg:%s" + exceptionMsg);
                 if (exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
                     ghostWebDriver.quit();
                     this.waitForAWhile(1000 * 60);
@@ -444,10 +446,10 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
     }
 
     private void waitForAWhile(Integer waitTime) {
-        Random random = new Random();
-        int sleepTime = (random.nextInt(20) + 10) * 1000;// 10s ~ 30s
-        if (waitTime != null) {
-            sleepTime = waitTime;
+        Integer sleepTime = waitTime;
+        if (waitTime == null) {
+            Random random = new Random();
+            sleepTime = (random.nextInt(20) + 10) * 1000;// 10s ~ 30s
         }
         try {
             Thread.sleep(sleepTime);

@@ -36,10 +36,13 @@ public class MailUtil {
 
     public static void send(
             String from, String replayTo, String mailTo, String cc, String subject, String msgContent, List<String> attachments, String invitation) {
+        int port = 465;
         Properties props = System.getProperties();
         String host = "smtp.163.com";
         props.put("mail.smtp.host", host);
         props.put("mail.smtp.auth", true);
+        props.put("mail.smtp.port", port);
+        props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 
         try {
             // create the connection between application and mail server
@@ -106,7 +109,7 @@ public class MailUtil {
             transport.sendMessage(msg, msg.getAllRecipients());
             transport.close();
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            logger.error(e);
         }
     }
 
