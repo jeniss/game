@@ -106,11 +106,11 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             logger.error(Thread.currentThread().getStackTrace()[1].getMethodName() + ", " + msg, e);
             List<String> files = new ArrayList<>();
             String exceptionMsg = e.getMessage();
-            if (e instanceof WebDriverException && exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
+            logger.info(String.format("------- exception:%s, msg:%s", e.getClass(), exceptionMsg));
+            if (!(e instanceof WebDriverException && exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException"))) {
                 String screenshotFilePath = SeleniumCommonLibs.screenshot(ghostWebDriver.getWebDriver());
                 files.add(screenshotFilePath);
             }
-            logger.info(String.format("------- exception:%s, msg:%s", e.getClass(), exceptionMsg));
             try {
                 logger.info("---------------------- send error message to email -----------");
                 Map<String, Object> templateParams = new HashMap<>();

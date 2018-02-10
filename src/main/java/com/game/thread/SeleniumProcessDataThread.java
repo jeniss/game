@@ -76,6 +76,7 @@ public class SeleniumProcessDataThread extends Thread {
                                 }
                             }
                         }
+                        ghostWebDriver.quit();
                     }
 
                 }
