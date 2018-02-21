@@ -53,6 +53,8 @@ public class SeleniumProcessDataThread extends Thread {
                 for (ServerArea serverArea : serverAreaList) {
                     // Traversal the childServer area of game
                     for (ServerArea childServer : serverArea.getChildServerAreas()) {
+                        SeleniumCommonLibs.goToPage(ghostWebDriver.getWebDriver(), url);
+
                         // Traversal the itemCategory
                         for (GameCategory itemCategory : gameCategoryList) {
                             // if the category type is equipment, then traversal the keys
