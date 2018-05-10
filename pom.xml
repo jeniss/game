@@ -228,6 +228,18 @@
             <scope>provided</scope>
         </dependency>
         <!-- selenium end -->
+        <!-- redis start -->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+            <version>1.7.5.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>redis.clients</groupId>
+            <artifactId>jedis</artifactId>
+            <version>2.9.0</version>
+        </dependency>
+        <!-- redis end -->
     </dependencies>
     <build>
         <plugins>

@@ -10,9 +10,11 @@ import com.game.service.IGameCategoryService;
 import com.game.service.IGameService;
 import com.game.service.ISeleniumProcessHTMLService;
 import com.game.service.IServerAreaService;
+import com.game.thread.SeleniumProcessDataThread;
 import com.game.util.ResponseHelper;
 import com.game.util.SeleniumCommonLibs;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -36,6 +38,8 @@ public class DataController {
     private IServerAreaService serverAreaService;
     @Autowired
     private ISeleniumProcessHTMLService seleniumProcessHTMLService;
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
 
     @RequestMapping(value = "/tradeFlowByUrl.do", method = RequestMethod.POST)
     public JsonEntity addTradeFlowByUrl(String url) {
@@ -71,6 +75,14 @@ public class DataController {
         }
     }
 
+    @RequestMapping(value = "/tradeFlowWithException.do", method = RequestMethod.GET)
+    public JsonEntity<String> test() {
+        // process the data
+        SeleniumProcessDataThread thread = new SeleniumProcessDataThread();
+        taskExecutor.execute(thread);
+        return ResponseHelper.createJsonEntity("crawlingDataToSaveCron time:" + new Date());
+    }
+
     @RequestMapping("/test.do")
     public JsonEntity test(HttpServletRequest request) {
         String ip = request.getHeader("x-forwarded-for");
@@ -90,6 +102,7 @@ public class DataController {
             ip = request.getRemoteAddr();
         }
         System.out.println(ip);
+
         if (true) {
             throw new BizException("test hahah");
         }

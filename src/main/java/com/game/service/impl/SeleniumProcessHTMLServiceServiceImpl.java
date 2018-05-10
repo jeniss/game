@@ -135,13 +135,15 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             } else if (e instanceof WebDriverException) {
                 if (exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
                     ghostWebDriver.quit();
-                    this.waitForAWhile(1000 * 60);
+                    int waitTime = 1000 * 60 * 10;
+                    this.waitForAWhile(waitTime);
                     String url = ConfigHelper.getInstance().getGameUrl() + "gm=" + game.getCode();
                     try {
                         ghostWebDriver.getWebDriver().get(url);
                         this.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, gameCategory, keyCategory);
                     } catch (Exception e1) {
                         logger.error("reconnection exception", e1);
+                        this.waitForAWhile(waitTime);
                     }
                 }
             }

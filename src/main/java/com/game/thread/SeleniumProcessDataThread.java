@@ -15,6 +15,8 @@ import com.game.template.TemplateService;
 import com.game.util.ConfigHelper;
 import com.game.util.SeleniumCommonLibs;
 import com.game.util.SpringContextUtil;
+import com.game.util.redis.RedisCache;
+import com.game.util.redis.RedisKey;
 import org.apache.log4j.Logger;
 import org.springframework.jms.core.JmsTemplate;
 
@@ -39,8 +41,10 @@ public class SeleniumProcessDataThread extends Thread {
         TemplateService templateService = (TemplateService) SpringContextUtil.getBean("templateService");
         JmsTemplate jmsTemplate = (JmsTemplate) SpringContextUtil.getBean("jmsTemplate");
         Destination destination = (Destination) SpringContextUtil.getBean("mailDestination");
+        RedisCache redisCache = (RedisCache) SpringContextUtil.getBean("redisCache");
 
         try {
+            // process data
             List<Game> gameList = gameService.getActiveGameList();
             for (Game game : gameList) {
                 String url = ConfigHelper.getInstance().getGameUrl() + "gm=" + game.getCode();
@@ -62,19 +66,28 @@ public class SeleniumProcessDataThread extends Thread {
                                 boolean isExist = true;
                                 List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
                                 for (GameCategory keyCategory : keyCategoryList) {
-                                    boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, keyCategory);
-                                    if (result == false) {
-                                        isExist = false;
-                                        break;
+                                    // check this subServer and category whether is done
+                                    if (!this.isSubServerAndCategoryDone(redisCache, childServer.getId(), keyCategory.getId())) {
+                                        boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, keyCategory);
+                                        if (result == false) {
+                                            isExist = false;
+                                            break;
+                                        }
+                                        this.saveProcessedRecordToRedis(redisCache, childServer.getId(), keyCategory.getId());
                                     }
                                 }
                                 if (!isExist) {
                                     break;
                                 }
                             } else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
-                                boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, null);
-                                if (!result) {
-                                    break;
+                                // check this subServer and category whether is done
+                                if (!this.isSubServerAndCategoryDone(redisCache, childServer.getId(), itemCategory.getId())) {
+                                    boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, null);
+                                    if (!result) {
+                                        break;
+                                    }
+                                    // save the processed subServer and category to redis
+                                    this.saveProcessedRecordToRedis(redisCache, childServer.getId(), itemCategory.getId());
                                 }
                             }
                         }
@@ -107,6 +120,16 @@ public class SeleniumProcessDataThread extends Thread {
         } finally {
             ghostWebDriver.quit();
         }
+    }
+
+    private void saveProcessedRecordToRedis(RedisCache redisCache, Integer subServerId, Integer categoryId) {
+        String keyValue = String.format("%s-%s", String.valueOf(subServerId), String.valueOf(categoryId));
+        redisCache.sadd(RedisKey.PROCESSED_SERVER_CATEGORIES, keyValue);
+    }
+
+    private boolean isSubServerAndCategoryDone(RedisCache redisCache, Integer subServerId, Integer categoryId) {
+        String keyValue = String.format("%s-%s", String.valueOf(subServerId), String.valueOf(categoryId));
+        return redisCache.sisMember(RedisKey.PROCESSED_SERVER_CATEGORIES, keyValue);
     }
 
 }
