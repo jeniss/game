@@ -58,8 +58,10 @@ public class GhostWebDriver {
     }
 
     public void quit() {
-        if (webDriver != null) {
+        try {
             webDriver.quit();
+        } catch (Exception e) {
+            webDriver = null;
         }
     }
 }

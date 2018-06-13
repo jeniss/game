@@ -5,12 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Repository;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Created by jeniss on 18/4/19.
@@ -42,9 +44,7 @@ public class RedisCache {
     }
 
     /**
-     * Set sadd
-     * @param key
-     * @param member
+     * Set events
      */
     public void sadd(String key, String member) {
         SetOperations<String, String> setOperations = redisTemplate.opsForSet();
@@ -55,5 +55,23 @@ public class RedisCache {
     public boolean sisMember(String key, String member) {
         SetOperations<String, String> setOperations = redisTemplate.opsForSet();
         return setOperations.isMember(key, member);
+    }
+
+    public Set<String> getAllMembers(String key) {
+        SetOperations<String, String> setOperations = redisTemplate.opsForSet();
+        return setOperations.members(key);
+    }
+
+    /**
+     * String events
+     */
+    public void set(String key, String value) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        valueOperations.set(key, value);
+    }
+
+    public String get(String key) {
+        ValueOperations<String, String> valueOperations = redisTemplate.opsForValue();
+        return valueOperations.get(key);
     }
 }

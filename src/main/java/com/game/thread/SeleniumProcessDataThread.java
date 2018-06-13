@@ -19,11 +19,13 @@ import com.game.util.redis.RedisCache;
 import com.game.util.redis.RedisKey;
 import org.apache.log4j.Logger;
 import org.springframework.jms.core.JmsTemplate;
+import org.springframework.util.CollectionUtils;
 
 import javax.jms.Destination;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by jeniss on 17/12/10.
@@ -40,8 +42,12 @@ public class SeleniumProcessDataThread extends Thread {
         ISeleniumProcessHTMLService seleniumProcessHTMLService = (ISeleniumProcessHTMLService) SpringContextUtil.getBean("seleniumProcessHTMLService");
         TemplateService templateService = (TemplateService) SpringContextUtil.getBean("templateService");
         JmsTemplate jmsTemplate = (JmsTemplate) SpringContextUtil.getBean("jmsTemplate");
-        Destination destination = (Destination) SpringContextUtil.getBean("mailDestination");
+        Destination mailDestination = (Destination) SpringContextUtil.getBean("mailDestination");
+        Destination cronExceptionDestination = (Destination) SpringContextUtil.getBean("cronExceptionDestination");
         RedisCache redisCache = (RedisCache) SpringContextUtil.getBean("redisCache");
+
+        // get processed data from redis
+        Set<String> allCacheProcessedData = redisCache.getAllMembers(RedisKey.PROCESSED_SERVER_CATEGORIES);
 
         try {
             // process data
@@ -53,42 +59,44 @@ public class SeleniumProcessDataThread extends Thread {
 
                 List<ServerArea> serverAreaList = serverAreaService.getAllByGameId(game.getId());
                 List<GameCategory> gameCategoryList = gameCategoryService.getAllItemCategoriesByGameId(game.getId());
+
                 // Traversal the serverArea of game
                 for (ServerArea serverArea : serverAreaList) {
                     // Traversal the childServer area of game
                     for (ServerArea childServer : serverArea.getChildServerAreas()) {
+                        // check all category of subserver whether is processed
+                        if (isAllCategoryOfSubServerProcessed(childServer, gameCategoryList, allCacheProcessedData, gameCategoryService)) {
+                            continue;
+                        }
+
+                        // start to process category
                         SeleniumCommonLibs.goToPage(ghostWebDriver.getWebDriver(), url);
 
                         // Traversal the itemCategory
                         for (GameCategory itemCategory : gameCategoryList) {
                             // if the category type is equipment, then traversal the keys
                             if (GameCategoryType.equipment.name().equals(itemCategory.getCode())) {
-                                boolean isExist = true;
+                                boolean isSubServerExist = true;
                                 List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
                                 for (GameCategory keyCategory : keyCategoryList) {
-                                    // check this subServer and category whether is done
-                                    if (!this.isSubServerAndCategoryDone(redisCache, childServer.getId(), keyCategory.getId())) {
-                                        boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, keyCategory);
-                                        if (result == false) {
-                                            isExist = false;
-                                            break;
-                                        }
-                                        this.saveProcessedRecordToRedis(redisCache, childServer.getId(), keyCategory.getId());
-                                    }
-                                }
-                                if (!isExist) {
-                                    break;
-                                }
-                            } else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
-                                // check this subServer and category whether is done
-                                if (!this.isSubServerAndCategoryDone(redisCache, childServer.getId(), itemCategory.getId())) {
-                                    boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, null);
-                                    if (!result) {
+                                    boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, keyCategory);
+                                    if (result == false) {
+                                        isSubServerExist = false;
                                         break;
                                     }
                                     // save the processed subServer and category to redis
-                                    this.saveProcessedRecordToRedis(redisCache, childServer.getId(), itemCategory.getId());
+                                    this.saveProcessedRecordToRedis(redisCache, childServer.getId(), keyCategory.getId());
                                 }
+                                if (!isSubServerExist) {
+                                    break;
+                                }
+                            } else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
+                                boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, null);
+                                if (!result) {
+                                    break;
+                                }
+                                // save the processed subServer and category to redis
+                                this.saveProcessedRecordToRedis(redisCache, childServer.getId(), itemCategory.getId());
                             }
                         }
                         ghostWebDriver.quit();
@@ -96,8 +104,22 @@ public class SeleniumProcessDataThread extends Thread {
 
                 }
             }
+            // delete cache data in redis
+            redisCache.delKey(RedisKey.PROCESSED_SERVER_CATEGORIES);
+            redisCache.delKey(RedisKey.CRON_EXCEPTION_FLAG);
             logger.info("---------------------process data thread end---------------------");
+            String msg = "The Cron of Game is done";
+            Map<String, Object> templateParams = new HashMap<>();
+            templateParams.put("msg", msg);
+            MailBo mailBo = new MailBo();
+            mailBo.setFrom(ConfigHelper.getInstance().getMailUsername());
+            mailBo.setMailTo(ConfigHelper.getInstance().getReceiveEmail());
+            mailBo.setSubject(msg);
+            mailBo.setMsgContent(msg);
+            jmsTemplate.convertAndSend(mailDestination, mailBo);
         } catch (Exception e) {
+            logger.info("---------------------- set exception flag is Y -----------");
+            redisCache.set(RedisKey.CRON_EXCEPTION_FLAG, "Y");
             logger.info("---------------------- send error message to email -----------");
             try {
                 String msg = "The Cron of Game is Failed";
@@ -112,13 +134,17 @@ public class SeleniumProcessDataThread extends Thread {
                 mailBo.setMailTo(ConfigHelper.getInstance().getReceiveEmail());
                 mailBo.setSubject(msg);
                 mailBo.setMsgContent(templateHtml);
-                jmsTemplate.convertAndSend(destination, mailBo);
+                jmsTemplate.convertAndSend(mailDestination, mailBo);
             } catch (Exception e1) {
                 logger.error(e1);
             }
             logger.error(e);
         } finally {
             ghostWebDriver.quit();
+            String cronExceptionFlag = redisCache.get(RedisKey.CRON_EXCEPTION_FLAG);
+            if ("Y".equals(cronExceptionFlag)) {
+                jmsTemplate.convertAndSend(cronExceptionDestination);
+            }
         }
     }
 
@@ -127,9 +153,37 @@ public class SeleniumProcessDataThread extends Thread {
         redisCache.sadd(RedisKey.PROCESSED_SERVER_CATEGORIES, keyValue);
     }
 
-    private boolean isSubServerAndCategoryDone(RedisCache redisCache, Integer subServerId, Integer categoryId) {
-        String keyValue = String.format("%s-%s", String.valueOf(subServerId), String.valueOf(categoryId));
-        return redisCache.sisMember(RedisKey.PROCESSED_SERVER_CATEGORIES, keyValue);
+
+    /**
+     * check all category of sub server whether is processed
+     */
+    private boolean isAllCategoryOfSubServerProcessed(ServerArea subServer, List<GameCategory> categories, Set<String> processedData, IGameCategoryService gameCategoryService) {
+        boolean isProcessed = true;
+        if (CollectionUtils.isEmpty(processedData)) {
+            return isProcessed;
+        }
+        for (GameCategory gameCategory : categories) {
+            if (GameCategoryType.equipment.name().equals(gameCategory.getCode())) {
+                List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
+                for (GameCategory keyCategory : keyCategoryList) {
+                    String keyValue = String.format("%s-%s", String.valueOf(subServer.getId()), String.valueOf(keyCategory.getId()));
+                    if (!processedData.contains(keyValue)) {
+                        isProcessed = false;
+                        break;
+                    }
+                }
+                if (!isProcessed) {
+                    break;
+                }
+            } else if (GameCategoryType.gameCoin.name().equals(gameCategory.getCode())) {
+                String keyValue = String.format("%s-%s", String.valueOf(subServer.getId()), String.valueOf(gameCategory.getId()));
+                if (!processedData.contains(keyValue)) {
+                    isProcessed = false;
+                    break;
+                }
+            }
+        }
+        return isProcessed;
     }
 
 }

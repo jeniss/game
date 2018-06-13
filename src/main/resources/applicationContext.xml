@@ -101,7 +101,7 @@
 
     <bean id="objectMessageConvert" class="com.game.jms.convert.ObjectMessageConvert"/>
 
-    <!-- mail -->
+    <!-- mail Queue -->
     <bean id="mailDestination" class="org.apache.activemq.command.ActiveMQQueue">
         <constructor-arg value="mailQueue"/>
     </bean>
@@ -110,6 +110,16 @@
         <property name="connectionFactory" ref="connection"/>
         <property name="destination" ref="mailDestination"/>
         <property name="messageListener" ref="mailListener"/>
+    </bean>
+    <!--  cron exception Queue -->
+    <bean id="cronExceptionDestination" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg value="cronExceptionQueue"/>
+    </bean>
+    <bean id="cronExceptionListener" class="com.game.jms.listener.CronExceptionListener"/>
+    <bean id="cronExceptionContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connection"/>
+        <property name="destination" ref="cronExceptionDestination"/>
+        <property name="messageListener" ref="cronExceptionListener"/>
     </bean>
     <!-- activemq end -->
 </beans>

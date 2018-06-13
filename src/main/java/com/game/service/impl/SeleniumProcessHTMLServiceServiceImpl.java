@@ -17,7 +17,10 @@ import com.game.template.TemplateService;
 import com.game.util.ConfigHelper;
 import com.game.util.NumberRegExUtil;
 import com.game.util.SeleniumCommonLibs;
+import com.game.util.SpringContextUtil;
 import com.game.util.StringUtil;
+import com.game.util.redis.RedisCache;
+import com.game.util.redis.RedisKey;
 import org.apache.log4j.Logger;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
@@ -47,7 +50,7 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
     @Autowired
     private JmsTemplate jmsTemplate;
     @Autowired
-    private Destination destination;
+    private Destination mailDestination;
 
     @Autowired
     private ITradeFlowService tradeFlowService;
@@ -67,7 +70,7 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
         // sleep
         this.waitForAWhile(null);
 
-        boolean result = true;
+        boolean isSubServerExist = true;
         String msg = null;
         if (keyCategory == null) {
             msg = "----------- area:%s,server:%s,category:%s -----------";
@@ -96,6 +99,8 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             msg = "----------- processed total count:%s -----------";
             logger.info(String.format(msg, tradeFlowList.size()));
         } catch (Exception e) {
+            RedisCache redisCache = (RedisCache) SpringContextUtil.getBean("redisCache");
+
             if (keyCategory == null) {
                 msg = "----------- area:%s,server:%s,category:%s -----------";
                 msg = String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getName());
@@ -125,30 +130,24 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                 mailBo.setSubject(msg);
                 mailBo.setMsgContent(templateHtml);
                 mailBo.setAttachments(files);
-                jmsTemplate.convertAndSend(destination, mailBo);
+                jmsTemplate.convertAndSend(mailDestination, mailBo);
             } catch (Exception e1) {
                 logger.error(e1);
             }
 
             if (e instanceof ServerNotExistException) {
-                result = false;
-            } else if (e instanceof WebDriverException) {
+                isSubServerExist = false;
+            } else {
+                logger.info("---------------------- set exception flag is Y -----------");
+                redisCache.set(RedisKey.CRON_EXCEPTION_FLAG, "Y");
                 if (exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
                     ghostWebDriver.quit();
-                    int waitTime = 1000 * 60 * 10;
+                    int waitTime = 1000 * 60 * 5;
                     this.waitForAWhile(waitTime);
-                    String url = ConfigHelper.getInstance().getGameUrl() + "gm=" + game.getCode();
-                    try {
-                        ghostWebDriver.getWebDriver().get(url);
-                        this.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, gameCategory, keyCategory);
-                    } catch (Exception e1) {
-                        logger.error("reconnection exception", e1);
-                        this.waitForAWhile(waitTime);
-                    }
                 }
             }
         }
-        return result;
+        return isSubServerExist;
     }
 
     /**

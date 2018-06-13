@@ -4,7 +4,6 @@ import com.game.entity.JsonEntity;
 import com.game.thread.SeleniumProcessDataThread;
 import com.game.util.ResponseHelper;
 import com.game.util.redis.RedisCache;
-import com.game.util.redis.RedisKey;
 import org.apache.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -30,8 +29,6 @@ public class CronController {
 
     @RequestMapping(value = "/crawlingDataToSave.do", method = RequestMethod.GET, produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public JsonEntity<String> test() {
-        // delete the subServer and category cache data in redis
-        redisCache.delKey(RedisKey.PROCESSED_SERVER_CATEGORIES);
         // process the data
         SeleniumProcessDataThread thread = new SeleniumProcessDataThread();
         taskExecutor.execute(thread);
