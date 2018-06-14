@@ -2,6 +2,8 @@ package com.game.jms.listener;
 
 import com.game.thread.SeleniumProcessDataThread;
 import com.game.util.SpringContextUtil;
+import com.game.util.redis.RedisCache;
+import com.game.util.redis.RedisKey;
 import org.apache.log4j.Logger;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -22,6 +24,10 @@ public class CronExceptionListener implements SessionAwareMessageListener<Object
             Thread.sleep(1000 * 60 * 30);
             // process the data
             ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) SpringContextUtil.getBean("taskExecutor");
+
+            // delete cache data in redis
+            RedisCache redisCache = (RedisCache) SpringContextUtil.getBean("redisCache");
+            redisCache.delKey(RedisKey.CRON_EXCEPTION_FLAG);
 
             SeleniumProcessDataThread thread = new SeleniumProcessDataThread();
             taskExecutor.execute(thread);

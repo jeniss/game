@@ -105,9 +105,6 @@ public class SeleniumProcessDataThread extends Thread {
 
                 }
             }
-            // delete cache data in redis
-            redisCache.delKey(RedisKey.PROCESSED_SERVER_CATEGORIES);
-            redisCache.delKey(RedisKey.CRON_EXCEPTION_FLAG);
             logger.info("---------------------process data thread end---------------------");
             String msg = "The Cron of Game is done";
             Map<String, Object> templateParams = new HashMap<>();

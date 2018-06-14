@@ -13,6 +13,8 @@ import com.game.service.IServerAreaService;
 import com.game.thread.SeleniumProcessDataThread;
 import com.game.util.ResponseHelper;
 import com.game.util.SeleniumCommonLibs;
+import com.game.util.redis.RedisCache;
+import com.game.util.redis.RedisKey;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -40,6 +42,8 @@ public class DataController {
     private ISeleniumProcessHTMLService seleniumProcessHTMLService;
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+    @Autowired
+    private RedisCache redisCache;
 
     @RequestMapping(value = "/tradeFlowByUrl.do", method = RequestMethod.POST)
     public JsonEntity addTradeFlowByUrl(String url) {
@@ -77,6 +81,7 @@ public class DataController {
 
     @RequestMapping(value = "/tradeFlowWithException.do", method = RequestMethod.GET)
     public JsonEntity<String> test() {
+        redisCache.delKey(RedisKey.CRON_EXCEPTION_FLAG);
         // process the data
         SeleniumProcessDataThread thread = new SeleniumProcessDataThread();
         taskExecutor.execute(thread);
