@@ -161,7 +161,7 @@ public class SeleniumProcessDataThread extends Thread {
     private boolean isAllCategoryOfSubServerProcessed(ServerArea subServer, List<GameCategory> categories, Set<String> processedData, IGameCategoryService gameCategoryService) {
         boolean isProcessed = true;
         if (CollectionUtils.isEmpty(processedData)) {
-            return isProcessed;
+            return false;
         }
         for (GameCategory gameCategory : categories) {
             if (GameCategoryType.equipment.name().equals(gameCategory.getCode())) {
