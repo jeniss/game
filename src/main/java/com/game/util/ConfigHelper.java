@@ -69,7 +69,7 @@ public class ConfigHelper {
     private final static String SELENIUM_LOG_PATH = "selenium.log.path";
 
 
-    public String getValidIp() {
+    public String getValidIps() {
         return getValue(VALID_IP);
     }
 

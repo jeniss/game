@@ -1,7 +1,6 @@
 package com.game.controller;
 
 import com.game.entity.JsonEntity;
-import com.game.exception.BizException;
 import com.game.model.Game;
 import com.game.model.GameCategory;
 import com.game.model.ServerArea;
@@ -108,9 +107,6 @@ public class DataController {
         }
         System.out.println(ip);
 
-        if (true) {
-            throw new BizException("test hahah");
-        }
         return ResponseHelper.createJsonEntity(ip);
     }
 

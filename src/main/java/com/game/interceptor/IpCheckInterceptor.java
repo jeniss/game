@@ -1,6 +1,7 @@
 package com.game.interceptor;
 
 import com.game.util.ConfigHelper;
+import com.game.util.StringUtil;
 import org.apache.log4j.Logger;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -16,12 +17,18 @@ public class IpCheckInterceptor implements HandlerInterceptor {
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
-        String validIps = ConfigHelper.getInstance().getValidIp();
-        if (validIps.contains(request.getRemoteAddr())) {
-            return true;
+        String remoteAddr = request.getRemoteAddr();
+        if (!StringUtil.isEmpty(remoteAddr)) {
+            String validIps = ConfigHelper.getInstance().getValidIps();
+            String[] validIpArr = validIps.split(";");
+            for (String validIP : validIpArr) {
+                if (remoteAddr.matches(validIP)) {
+                    return true;
+                }
+            }
         }
         logger.info(String.format("ip(%s) is invalid.", request.getRemoteAddr()));
-        return true;
+        return false;
     }
 
     @Override
