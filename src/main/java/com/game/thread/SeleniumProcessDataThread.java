@@ -48,6 +48,7 @@ public class SeleniumProcessDataThread extends Thread {
 
         // get processed data from redis
         Set<String> allCacheProcessedData = redisCache.getAllMembers(RedisKey.PROCESSED_SERVER_CATEGORIES);
+        logger.info(String.format("---------------- allCacheProcessedData: %s", String.valueOf(CollectionUtils.isEmpty(allCacheProcessedData) ? 0 : allCacheProcessedData.size())));
 
         try {
             // process data
