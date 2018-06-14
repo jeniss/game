@@ -72,9 +72,12 @@ public class SeleniumCommonLibs {
         wait.until(webDriver1 -> ((JavascriptExecutor) webDriver).executeScript("return document.readyState").equals("complete"));
     }
 
-    public static void waitPageContainElement(WebDriver webDriver, By elementBy) {
-        WebDriverWait wait = new WebDriverWait(webDriver, DEFAULT_TIMEOUT);
-        wait.until(ExpectedConditions.presenceOfElementLocated(elementBy));
+    public static void waitElementIsVisible(WebDriver webDriver, By elementBy, Integer timeout) {
+        if (timeout == null) {
+            timeout = DEFAULT_TIMEOUT;
+        }
+        WebDriverWait wait = new WebDriverWait(webDriver, timeout);
+        wait.until(ExpectedConditions.visibilityOfElementLocated(elementBy));
     }
 
     public static String screenshot(WebDriver webDriver) {

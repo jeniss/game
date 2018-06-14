@@ -105,16 +105,6 @@ public class SeleniumProcessDataThread extends Thread {
 
                 }
             }
-            logger.info("---------------------process data thread end---------------------");
-            String msg = "The Cron of Game is done";
-            Map<String, Object> templateParams = new HashMap<>();
-            templateParams.put("msg", msg);
-            MailBo mailBo = new MailBo();
-            mailBo.setFrom(ConfigHelper.getInstance().getMailUsername());
-            mailBo.setMailTo(ConfigHelper.getInstance().getReceiveEmail());
-            mailBo.setSubject(msg);
-            mailBo.setMsgContent(msg);
-            jmsTemplate.convertAndSend(mailDestination, mailBo);
         } catch (Exception e) {
             logger.info("---------------------- set exception flag is Y -----------");
             redisCache.set(RedisKey.CRON_EXCEPTION_FLAG, "Y");
@@ -142,6 +132,18 @@ public class SeleniumProcessDataThread extends Thread {
             String cronExceptionFlag = redisCache.get(RedisKey.CRON_EXCEPTION_FLAG);
             if ("Y".equals(cronExceptionFlag)) {
                 jmsTemplate.convertAndSend(cronExceptionDestination);
+                logger.info("---------------------there are some servers cannot be processed---------------------");
+            } else {
+                logger.info("---------------------process data thread end---------------------");
+                String msg = "The Cron of Game is done";
+                Map<String, Object> templateParams = new HashMap<>();
+                templateParams.put("msg", msg);
+                MailBo mailBo = new MailBo();
+                mailBo.setFrom(ConfigHelper.getInstance().getMailUsername());
+                mailBo.setMailTo(ConfigHelper.getInstance().getReceiveEmail());
+                mailBo.setSubject(msg);
+                mailBo.setMsgContent(msg);
+                jmsTemplate.convertAndSend(mailDestination, mailBo);
             }
         }
     }

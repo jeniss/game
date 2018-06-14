@@ -394,9 +394,12 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
      */
     private void gotoExactListPage(WebDriver webDriver, ServerArea serverArea, ServerArea childServerArea, GameCategory gameCategory, String keyword) {
         SeleniumCommonLibs.waitPageLoad(webDriver);
-        if (!SeleniumCommonLibs.isElementExist(webDriver, By.id("exactselectbox"))) {
+        try {
+            SeleniumCommonLibs.waitElementIsVisible(webDriver, By.id("exactselectbox"), null);
+        } catch (Exception e) {
             throw new BizException("The exact search box doesn't exist.");
         }
+
         boolean isExist = false;
         // choose the big server of game
         webDriver.findElement(By.xpath("//*[@id='exactselectbox']/li[2]")).click();
