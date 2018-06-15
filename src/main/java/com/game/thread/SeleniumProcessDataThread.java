@@ -131,7 +131,7 @@ public class SeleniumProcessDataThread extends Thread {
             ghostWebDriver.quit();
             String cronExceptionFlag = redisCache.get(RedisKey.CRON_EXCEPTION_FLAG);
             if ("Y".equals(cronExceptionFlag)) {
-                jmsTemplate.convertAndSend(cronExceptionDestination);
+                jmsTemplate.convertAndSend(cronExceptionDestination, "");
                 logger.info("---------------------there are some servers cannot be processed---------------------");
             } else {
                 logger.info("---------------------process data thread end---------------------");
