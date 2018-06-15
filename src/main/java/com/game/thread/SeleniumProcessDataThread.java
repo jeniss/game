@@ -80,24 +80,28 @@ public class SeleniumProcessDataThread extends Thread {
                                 boolean isSubServerExist = true;
                                 List<GameCategory> keyCategoryList = gameCategoryService.getAllKeysByItemCode(GameCategoryType.equipment.name());
                                 for (GameCategory keyCategory : keyCategoryList) {
-                                    boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, keyCategory);
-                                    if (result == false) {
+                                    String result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, keyCategory);
+                                    if ("ServerNotExistException".equals(result)) {
                                         isSubServerExist = false;
                                         break;
                                     }
-                                    // save the processed subServer and category to redis
-                                    this.saveProcessedRecordToRedis(redisCache, childServer.getId(), keyCategory.getId());
+                                    if ("success".equals(result)) {
+                                        // save the processed subServer and category to redis
+                                        this.saveProcessedRecordToRedis(redisCache, childServer.getId(), keyCategory.getId());
+                                    }
                                 }
                                 if (!isSubServerExist) {
                                     break;
                                 }
                             } else if (GameCategoryType.gameCoin.name().equals(itemCategory.getCode())) {
-                                boolean result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, null);
-                                if (!result) {
+                                String result = seleniumProcessHTMLService.processHtmlAndPost(ghostWebDriver, game, serverArea, childServer, itemCategory, null);
+                                if ("ServerNotExistException".equals(result)) {
                                     break;
                                 }
-                                // save the processed subServer and category to redis
-                                this.saveProcessedRecordToRedis(redisCache, childServer.getId(), itemCategory.getId());
+                                if ("success".equals(result)) {
+                                    // save the processed subServer and category to redis
+                                    this.saveProcessedRecordToRedis(redisCache, childServer.getId(), itemCategory.getId());
+                                }
                             }
                         }
                         ghostWebDriver.quit();

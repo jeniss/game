@@ -66,11 +66,11 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
      * @param keyCategory
      */
     @Override
-    public Boolean processHtmlAndPost(GhostWebDriver ghostWebDriver, Game game, ServerArea serverArea, ServerArea childServer, GameCategory gameCategory, GameCategory keyCategory) {
+    public String processHtmlAndPost(GhostWebDriver ghostWebDriver, Game game, ServerArea serverArea, ServerArea childServer, GameCategory gameCategory, GameCategory keyCategory) {
         // sleep
         this.waitForAWhile(null);
 
-        boolean isSubServerExist = true;
+        String result = "success";
         String msg = null;
         if (keyCategory == null) {
             msg = "----------- area:%s,server:%s,category:%s -----------";
@@ -99,8 +99,7 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             msg = "----------- processed total count:%s -----------";
             logger.info(String.format(msg, tradeFlowList.size()));
         } catch (Exception e) {
-            RedisCache redisCache = (RedisCache) SpringContextUtil.getBean("redisCache");
-
+            result = "error";
             if (keyCategory == null) {
                 msg = "----------- area:%s,server:%s,category:%s -----------";
                 msg = String.format(msg, serverArea.getName(), childServer.getName(), gameCategory.getName());
@@ -136,9 +135,10 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
             }
 
             if (e instanceof ServerNotExistException) {
-                isSubServerExist = false;
+                result = "ServerNotExistException";
             } else {
                 logger.info("---------------------- set exception flag is Y -----------");
+                RedisCache redisCache = (RedisCache) SpringContextUtil.getBean("redisCache");
                 redisCache.set(RedisKey.CRON_EXCEPTION_FLAG, "Y");
                 if (exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
                     ghostWebDriver.quit();
@@ -147,7 +147,7 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                 }
             }
         }
-        return isSubServerExist;
+        return result;
     }
 
     /**
