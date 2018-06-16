@@ -4,22 +4,23 @@ import com.game.thread.SeleniumProcessDataThread;
 import com.game.util.SpringContextUtil;
 import com.game.util.redis.RedisCache;
 import com.game.util.redis.RedisKey;
+import org.apache.activemq.command.ActiveMQTextMessage;
 import org.apache.log4j.Logger;
 import org.springframework.jms.listener.SessionAwareMessageListener;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.jms.JMSException;
-import javax.jms.ObjectMessage;
 import javax.jms.Session;
 
 /**
  * Created by jeniss on 18/6/13.
  */
-public class CronExceptionListener implements SessionAwareMessageListener<ObjectMessage> {
+public class CronExceptionListener implements SessionAwareMessageListener<ActiveMQTextMessage> {
     private static final Logger LOGGER = Logger.getLogger(CronExceptionListener.class);
 
     @Override
-    public void onMessage(ObjectMessage objectMessage, Session session) throws JMSException {
+    public void onMessage(ActiveMQTextMessage activeMQTextMessage, Session session) throws JMSException {
+        LOGGER.info("----------------------- start to cron exception process data -----------------------");
         try {
             Thread.sleep(1000 * 60 * 30);
             // process the data
