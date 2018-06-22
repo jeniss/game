@@ -22,7 +22,7 @@ public class CronExceptionListener implements SessionAwareMessageListener<Active
     public void onMessage(ActiveMQTextMessage activeMQTextMessage, Session session) throws JMSException {
         LOGGER.info("----------------------- start to cron exception process data -----------------------");
         try {
-            Thread.sleep(1000 * 60 * 15);
+            Thread.sleep(1000 * 60);
             // process the data
             ThreadPoolTaskExecutor taskExecutor = (ThreadPoolTaskExecutor) SpringContextUtil.getBean("taskExecutor");
 

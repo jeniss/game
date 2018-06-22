@@ -142,7 +142,7 @@ public class SeleniumProcessHTMLServiceServiceImpl implements ISeleniumProcessHT
                 redisCache.set(RedisKey.CRON_EXCEPTION_FLAG, "Y");
                 if (exceptionMsg.contains("org.apache.http.conn.HttpHostConnectException")) {
                     ghostWebDriver.quit();
-                    int waitTime = 1000 * 60 * 2;
+                    int waitTime = 1000 * 60 * 10;
                     this.waitForAWhile(waitTime);
                 }
             }
